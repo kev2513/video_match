@@ -31,7 +31,8 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   }
 
   _startRecording() {
-    if (_recodringTimer == null)
+    if (_recodringTimer == null && _recordState){
+      //_cameraController.startVideoRecording("selfVideo.mp4");
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
         if (_sliderProgress < .999)
           setState(() {
@@ -41,15 +42,18 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
         else
           _stopRecording();
       });
+    }
   }
 
   _stopRecording() {
+    if(!_recordState){
+      //_cameraController.stopVideoRecording();
     setState(() {
       _recodringTimer.cancel();
       _recodringTimer = null;
       _sliderProgress = 0;
       _recordState = true;
-    });
+    });}
   }
 
   @override
