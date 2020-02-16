@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:video_match/utils/colors.dart';
 
 class CreateVideoScreen extends StatefulWidget {
   @override
@@ -31,7 +32,7 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   }
 
   _startRecording() {
-    if (_recodringTimer == null && _recordState){
+    if (_recodringTimer == null && _recordState) {
       //_cameraController.startVideoRecording("selfVideo.mp4");
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
         if (_sliderProgress < .999)
@@ -46,14 +47,15 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   }
 
   _stopRecording() {
-    if(!_recordState){
+    if (!_recordState) {
       //_cameraController.stopVideoRecording();
-    setState(() {
-      _recodringTimer.cancel();
-      _recodringTimer = null;
-      _sliderProgress = 0;
-      _recordState = true;
-    });}
+      setState(() {
+        _recodringTimer.cancel();
+        _recodringTimer = null;
+        _sliderProgress = 0;
+        _recordState = true;
+      });
+    }
   }
 
   @override
@@ -70,9 +72,17 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text("Please allow access to your camera and microphone"),
+                  Text(
+                    "Please allow access to your camera and microphone",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Divider(),
                   FlatButton(
-                    child: Text("Allow"),
+                    child: Text(
+                      "Allow",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: Colors.black,
                     onPressed: () {
                       _accessCamera();
                     },
@@ -94,9 +104,13 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                   ),
                 ),
                 Align(
-                  alignment: Alignment(0, .6),
-                  child: Text("Time remaining: " +
-                      (60 - (_sliderProgress * 60)).toInt().toString()),
+                  alignment: Alignment(.75, .6),
+                  child: Text(
+                    "Time remaining: " +
+                        (60 - (_sliderProgress * 60)).toInt().toString() +
+                        " seconds",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
                 Align(
                   alignment: Alignment(0, .7),
@@ -119,7 +133,7 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                       else
                         _stopRecording();
                     },
-                    backgroundColor: Colors.red,
+                    backgroundColor: (_recordState) ? Colors.red : mainColor,
                   ),
                 ),
               ],
