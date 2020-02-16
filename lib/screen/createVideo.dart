@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 
 class CreateVideoScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   double _sliderProgress = 0;
   bool _recordState = true;
   Timer _recodringTimer;
+  bool _videoPlayButton = false;
 
   _accessCamera() {
     availableCameras().then((cameras) {
@@ -31,9 +34,18 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
     });
   }
 
-  _startRecording() {
+  _getSelfVideoPath() async {
+    File videoFilePath =
+        File((await getTemporaryDirectory()).path + "/selfVideo.mp4");
+    if (await videoFilePath.exists()) {
+      await videoFilePath.delete();
+    }
+    return videoFilePath.path;
+  }
+
+  _startRecording() async {
     if (_recodringTimer == null && _recordState) {
-      //_cameraController.startVideoRecording("selfVideo.mp4");
+      _cameraController.startVideoRecording(await _getSelfVideoPath());
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
         if (_sliderProgress < .999)
           setState(() {
@@ -46,14 +58,15 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
     }
   }
 
-  _stopRecording() {
+  _stopRecording() async {
     if (!_recordState) {
-      //_cameraController.stopVideoRecording();
+      _cameraController.stopVideoRecording();
       setState(() {
         _recodringTimer.cancel();
         _recodringTimer = null;
         _sliderProgress = 0;
         _recordState = true;
+        _videoPlayButton = true;
       });
     }
   }
@@ -103,6 +116,23 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                     ),
                   ),
                 ),
+                (_videoPlayButton)
+                    ? Align(
+                        alignment: Alignment(0, 0),
+                        child: GestureDetector(
+                          child: Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 80,
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _videoPlayButton = false;
+                            });
+                          },
+                        ),
+                      )
+                    : Container(),
                 Align(
                   alignment: Alignment(.75, .6),
                   child: Text(
