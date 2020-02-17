@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "622817445328",
+    "firebase_url": "https://videomatch-2020.firebaseio.com",
+    "project_id": "videomatch-2020",
+    "storage_bucket": "videomatch-2020.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622817445328:android:2f756294cc61d96f9ea5d5",
+        "android_client_info": {
+          "package_name": "com.focus.videomatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "622817445328-cvss376u4qfdcca9f04f0muqgm7erod1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.focus.videomatch",
+            "certificate_hash": "6ca9a3d5d653483100a67317c9167ba16c34fbb8"
+          }
+        },
+        {
+          "client_id": "622817445328-9221loo1dlcn42nlhhcl4ien6f2rjol1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAVyGlADl1HJiyUTF4imqRl2WByZ-zMwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "622817445328-9221loo1dlcn42nlhhcl4ien6f2rjol1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

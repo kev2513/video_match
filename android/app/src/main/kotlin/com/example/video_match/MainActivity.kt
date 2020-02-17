@@ -1,4 +1,4 @@
-package com.focus.video_match
+package com.focus.videomatch
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
