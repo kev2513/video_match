@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
+import 'package:video_player/video_player.dart';
 
 class CreateVideoScreen extends StatefulWidget {
   @override
@@ -17,12 +18,23 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   double _sliderProgress = 0;
   bool _recordState = true;
   Timer _recodringTimer;
-  bool _videoPlayButton = false;
+  bool _videoPlay = false;
+
+  VideoPlayerController _videoPlayerController;
+  Future<void> _initializeVideoPlayerFuture;
+
+  _initVideoPlayer() async {
+    String path = await _getSelfVideoPath();
+    _videoPlayerController = VideoPlayerController.file(File(path));
+    _initializeVideoPlayerFuture = _videoPlayerController.initialize();
+    _videoPlayerController.setLooping(true);
+    _videoPlayerController.play();
+  }
 
   _accessCamera() {
     availableCameras().then((cameras) {
       _cameraController = CameraController(cameras[1], ResolutionPreset.medium);
-      if (_cameraController != null)
+      if (_cameraController != null) {
         _cameraController.initialize().then((_) {
           if (!mounted) {
             return;
@@ -31,13 +43,14 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
             _cameraGranted = true;
           });
         });
+      }
     });
   }
 
-  _getSelfVideoPath() async {
+  Future<String> _getSelfVideoPath({bool deleteOnExist = false}) async {
     File videoFilePath =
         File((await getTemporaryDirectory()).path + "/selfVideo.mp4");
-    if (await videoFilePath.exists()) {
+    if (await videoFilePath.exists() && deleteOnExist) {
       await videoFilePath.delete();
     }
     return videoFilePath.path;
@@ -45,15 +58,19 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
 
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
-      _cameraController.startVideoRecording(await _getSelfVideoPath());
+      _videoPlay = false;
+      _cameraController
+          .startVideoRecording(await _getSelfVideoPath(deleteOnExist: true));
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
         if (_sliderProgress < .999)
           setState(() {
             _sliderProgress += .001;
             _recordState = false;
           });
-        else
+        else {
+          timer.cancel();
           _stopRecording();
+        }
       });
     }
   }
@@ -61,12 +78,12 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   _stopRecording() async {
     if (!_recordState) {
       _cameraController.stopVideoRecording();
+      await _initVideoPlayer();
       setState(() {
-        _recodringTimer.cancel();
         _recodringTimer = null;
         _sliderProgress = 0;
         _recordState = true;
-        _videoPlayButton = true;
+        _videoPlay = true;
       });
     }
   }
@@ -112,60 +129,77 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                   child: Center(
                     child: AspectRatio(
                       aspectRatio: _cameraController.value.aspectRatio,
-                      child: CameraPreview(_cameraController),
+                      child: (!_videoPlay)
+                          ? CameraPreview(_cameraController)
+                          : VideoPlayer(_videoPlayerController),
                     ),
                   ),
                 ),
-                (_videoPlayButton)
+                (_videoPlay)
                     ? Align(
-                        alignment: Alignment(0, 0),
-                        child: GestureDetector(
-                          child: Icon(
-                            Icons.play_arrow,
-                            color: Colors.white,
-                            size: 80,
-                          ),
-                          onTap: () {
+                        alignment: Alignment(-.5, .8),
+                        child: FloatingActionButton(
+                          onPressed: () {
                             setState(() {
-                              _videoPlayButton = false;
+                              _videoPlay = false;
+                              _videoPlayerController.pause();
                             });
                           },
+                          child: Icon(Icons.replay),
                         ),
                       )
                     : Container(),
-                Align(
-                  alignment: Alignment(.75, .6),
-                  child: Text(
-                    "Time remaining: " +
-                        (60 - (_sliderProgress * 60)).toInt().toString() +
-                        " seconds",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment(0, .7),
-                  child: SizedBox(
-                      height: 20,
-                      child: Slider(
-                        value: _sliderProgress,
-                        onChanged: (_) {},
-                      )),
-                ),
-                Align(
-                  alignment: Alignment(0, .9),
-                  child: FloatingActionButton(
-                    child: Icon((_recordState)
-                        ? Icons.fiber_manual_record
-                        : Icons.stop),
-                    onPressed: () {
-                      if (_recordState)
-                        _startRecording();
-                      else
-                        _stopRecording();
-                    },
-                    backgroundColor: (_recordState) ? Colors.red : mainColor,
-                  ),
-                ),
+                (_videoPlay)
+                    ? Align(
+                        alignment: Alignment(.5, .8),
+                        child: FloatingActionButton(
+                          onPressed: () {},
+                          child: Icon(Icons.check),backgroundColor: Colors.green,
+                        ),
+                      )
+                    : Container(),
+                (!_videoPlay)
+                    ? Align(
+                        alignment: Alignment(.75, .6),
+                        child: Text(
+                          "Time remaining: " +
+                              (60 - (_sliderProgress * 60)).toInt().toString() +
+                              " seconds",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                    : Container(),
+                (!_videoPlay)
+                    ? Align(
+                        alignment: Alignment(0, .7),
+                        child: SizedBox(
+                            height: 20,
+                            child: Slider(
+                              value: _sliderProgress,
+                              onChanged: (_) {},
+                            )),
+                      )
+                    : Container(),
+                (!_videoPlay)
+                    ? Align(
+                        alignment: Alignment(0, .9),
+                        child: FloatingActionButton(
+                          child: Icon((_recordState)
+                              ? Icons.fiber_manual_record
+                              : Icons.stop),
+                          onPressed: () {
+                            if (_recordState)
+                              _startRecording();
+                            else {
+                              _recodringTimer.cancel();
+                              _stopRecording();
+                            }
+                          },
+                          backgroundColor:
+                              (_recordState) ? Colors.red : mainColor,
+                        ),
+                      )
+                    : Container(),
               ],
             ),
     );
