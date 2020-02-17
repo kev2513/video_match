@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
@@ -154,7 +155,8 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                         alignment: Alignment(.5, .8),
                         child: FloatingActionButton(
                           onPressed: () {},
-                          child: Icon(Icons.check),backgroundColor: Colors.green,
+                          child: Icon(Icons.check),
+                          backgroundColor: Colors.green,
                         ),
                       )
                     : Container(),

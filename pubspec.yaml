@@ -10,6 +10,8 @@ dependencies:
   camera: 0.5.7+3
   path_provider: 1.6.0
   video_player: 0.10.7
+  firebase_core: 0.4.4
+  cloud_firestore: 0.13.1
   
   flutter:
     sdk: flutter
