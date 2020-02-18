@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:camera/camera.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
@@ -60,12 +61,12 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
       _videoPlay = false;
-      _cameraController
+      await _cameraController
           .startVideoRecording(await _getSelfVideoPath(deleteOnExist: true));
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
-        if (_sliderProgress < .999)
+        if (_sliderProgress < .996)
           setState(() {
-            _sliderProgress += .001;
+            _sliderProgress += .004;
             _recordState = false;
           });
         else {
@@ -98,6 +99,12 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Image.asset(
+          "assets/app_lable.png",
+          height: 40,
+        ),
+      ),
       body: (!_cameraGranted)
           ? Center(
               child: Column(
@@ -154,8 +161,17 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                     ? Align(
                         alignment: Alignment(.5, .8),
                         child: FloatingActionButton(
-                          onPressed: () {},
-                          child: Icon(Icons.check),
+                          onPressed: () async {
+                            final StorageUploadTask uploadTask =
+                                FirebaseStorage()
+                                    .ref()
+                                    .child("path.mp4")
+                                    .putFile(File(await _getSelfVideoPath()));
+
+                            await uploadTask.onComplete;
+                            print("uploade done!");
+                          },
+                          child: Icon(Icons.file_upload),
                           backgroundColor: Colors.green,
                         ),
                       )
@@ -165,7 +181,7 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
                         alignment: Alignment(.75, .6),
                         child: Text(
                           "Time remaining: " +
-                              (60 - (_sliderProgress * 60)).toInt().toString() +
+                              (15 - (_sliderProgress * 15)).toInt().toString() +
                               " seconds",
                           style: TextStyle(color: Colors.white),
                         ),

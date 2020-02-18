@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Video Match',
       theme: ThemeData(
+          appBarTheme: AppBarTheme(color: Colors.white),
           sliderTheme: SliderThemeData(
               activeTrackColor: mainColor,
               inactiveTrackColor: secondaryColor,

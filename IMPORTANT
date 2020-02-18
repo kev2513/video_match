@@ -1,6 +1,7 @@
 Camera package has an bug relating to audio quality. Audio quality very poor.
 To fix insert 'if (enableAudio) mediaRecorder.setAudioEncodingBitRate(recordingProfile.audioBitRate);'
 @line 128 in camera.java (see: https://github.com/flutter/plugins/pull/2426/files) for pull request.
+Also removed 'orientationEventListener.enable();' in line 102.
 
 App key:
 x3jwWef2@
