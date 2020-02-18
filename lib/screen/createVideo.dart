@@ -9,12 +9,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_player/video_player.dart';
 
-class CreateVideoScreen extends StatefulWidget {
+class CreateVideo extends StatefulWidget {
   @override
-  _CreateVideoScreenState createState() => _CreateVideoScreenState();
+  _CreateVideoState createState() => _CreateVideoState();
 }
 
-class _CreateVideoScreenState extends State<CreateVideoScreen> {
+class _CreateVideoState extends State<CreateVideo> {
   CameraController _cameraController;
   bool _cameraGranted = false;
   double _sliderProgress = 0;
@@ -23,12 +23,11 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
   bool _videoPlay = false;
 
   VideoPlayerController _videoPlayerController;
-  Future<void> _initializeVideoPlayerFuture;
 
   _initVideoPlayer() async {
     String path = await _getSelfVideoPath();
     _videoPlayerController = VideoPlayerController.file(File(path));
-    _initializeVideoPlayerFuture = _videoPlayerController.initialize();
+    _videoPlayerController.initialize();
     _videoPlayerController.setLooping(true);
     _videoPlayerController.play();
   }
@@ -98,128 +97,119 @@ class _CreateVideoScreenState extends State<CreateVideoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Image.asset(
-          "assets/app_lable.png",
-          height: 40,
-        ),
-      ),
-      body: (!_cameraGranted)
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    "Please allow access to your camera and microphone",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Divider(),
-                  FlatButton(
-                    child: Text(
-                      "Allow",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    color: Colors.black,
-                    onPressed: () {
-                      _accessCamera();
-                    },
-                  )
-                ],
-              ),
-            )
-          : Stack(
+    return (!_cameraGranted)
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Transform.scale(
-                  scale: _cameraController.value.aspectRatio /
-                      (MediaQuery.of(context).size.width /
-                          MediaQuery.of(context).size.height),
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: _cameraController.value.aspectRatio,
-                      child: (!_videoPlay)
-                          ? CameraPreview(_cameraController)
-                          : VideoPlayer(_videoPlayerController),
-                    ),
-                  ),
+                Text(
+                  "Please allow access to your camera and microphone",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                (_videoPlay)
-                    ? Align(
-                        alignment: Alignment(-.5, .8),
-                        child: FloatingActionButton(
-                          onPressed: () {
-                            setState(() {
-                              _videoPlay = false;
-                              _videoPlayerController.pause();
-                            });
-                          },
-                          child: Icon(Icons.replay),
-                        ),
-                      )
-                    : Container(),
-                (_videoPlay)
-                    ? Align(
-                        alignment: Alignment(.5, .8),
-                        child: FloatingActionButton(
-                          onPressed: () async {
-                            final StorageUploadTask uploadTask =
-                                FirebaseStorage()
-                                    .ref()
-                                    .child("path.mp4")
-                                    .putFile(File(await _getSelfVideoPath()));
-
-                            await uploadTask.onComplete;
-                            print("uploade done!");
-                          },
-                          child: Icon(Icons.file_upload),
-                          backgroundColor: Colors.green,
-                        ),
-                      )
-                    : Container(),
-                (!_videoPlay)
-                    ? Align(
-                        alignment: Alignment(.75, .6),
-                        child: Text(
-                          "Time remaining: " +
-                              (15 - (_sliderProgress * 15)).toInt().toString() +
-                              " seconds",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      )
-                    : Container(),
-                (!_videoPlay)
-                    ? Align(
-                        alignment: Alignment(0, .7),
-                        child: SizedBox(
-                            height: 20,
-                            child: Slider(
-                              value: _sliderProgress,
-                              onChanged: (_) {},
-                            )),
-                      )
-                    : Container(),
-                (!_videoPlay)
-                    ? Align(
-                        alignment: Alignment(0, .9),
-                        child: FloatingActionButton(
-                          child: Icon((_recordState)
-                              ? Icons.fiber_manual_record
-                              : Icons.stop),
-                          onPressed: () {
-                            if (_recordState)
-                              _startRecording();
-                            else {
-                              _recodringTimer.cancel();
-                              _stopRecording();
-                            }
-                          },
-                          backgroundColor:
-                              (_recordState) ? Colors.red : mainColor,
-                        ),
-                      )
-                    : Container(),
+                Divider(),
+                FlatButton(
+                  child: Text(
+                    "Allow",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  color: Colors.black,
+                  onPressed: () {
+                    _accessCamera();
+                  },
+                )
               ],
             ),
-    );
+          )
+        : Stack(
+            children: <Widget>[
+              Transform.scale(
+                scale: _cameraController.value.aspectRatio /
+                    (MediaQuery.of(context).size.width /
+                        MediaQuery.of(context).size.height),
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: _cameraController.value.aspectRatio,
+                    child: (!_videoPlay)
+                        ? CameraPreview(_cameraController)
+                        : VideoPlayer(_videoPlayerController),
+                  ),
+                ),
+              ),
+              (_videoPlay)
+                  ? Align(
+                      alignment: Alignment(-.5, .8),
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          setState(() {
+                            _videoPlay = false;
+                            _videoPlayerController.pause();
+                          });
+                        },
+                        child: Icon(Icons.replay),
+                      ),
+                    )
+                  : Container(),
+              (_videoPlay)
+                  ? Align(
+                      alignment: Alignment(.5, .8),
+                      child: FloatingActionButton(
+                        onPressed: () async {
+                          final StorageUploadTask uploadTask = FirebaseStorage()
+                              .ref()
+                              .child("path.mp4")
+                              .putFile(File(await _getSelfVideoPath()));
+
+                          await uploadTask.onComplete;
+                          print("uploade done!");
+                        },
+                        child: Icon(Icons.file_upload),
+                        backgroundColor: Colors.green,
+                      ),
+                    )
+                  : Container(),
+              (!_videoPlay)
+                  ? Align(
+                      alignment: Alignment(.75, .6),
+                      child: Text(
+                        "Time remaining: " +
+                            (15 - (_sliderProgress * 15)).toInt().toString() +
+                            " seconds",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
+                  : Container(),
+              (!_videoPlay)
+                  ? Align(
+                      alignment: Alignment(0, .7),
+                      child: SizedBox(
+                          height: 20,
+                          child: Slider(
+                            value: _sliderProgress,
+                            onChanged: (_) {},
+                          )),
+                    )
+                  : Container(),
+              (!_videoPlay)
+                  ? Align(
+                      alignment: Alignment(0, .9),
+                      child: FloatingActionButton(
+                        child: Icon((_recordState)
+                            ? Icons.fiber_manual_record
+                            : Icons.stop),
+                        onPressed: () {
+                          if (_recordState)
+                            _startRecording();
+                          else {
+                            _recodringTimer.cancel();
+                            _stopRecording();
+                          }
+                        },
+                        backgroundColor:
+                            (_recordState) ? Colors.red : mainColor,
+                      ),
+                    )
+                  : Container(),
+            ],
+          );
   }
 }
