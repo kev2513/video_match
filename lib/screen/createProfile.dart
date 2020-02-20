@@ -18,7 +18,6 @@ class _CreateProfileState extends State<CreateProfile> {
       TextEditingController(text: "80");
   DateTime _age;
   bool _gender = true;
-  bool _genderLockingFor = false;
   String selectedCountry, selectedState;
   List<String> countries = List<String>();
   List<String> states = List<String>();
@@ -31,6 +30,32 @@ class _CreateProfileState extends State<CreateProfile> {
     });
 
     return statesTemp;
+  }
+
+  _checkProfile() {
+    String message = "";
+    if (_textEditingControllerFirstName.text.isEmpty)
+      message += " \n • your name is missing";
+    if (_age == null) message += "\n • your age is not set";
+    if (selectedCountry == "None") message += "\n • please enter our country";
+    if (int.parse(_textEditingControllerMinAge.text) > 80 ||
+        int.parse(_textEditingControllerMaxAge.text) > 80)
+      message += "\n • users can max be 80 years old";
+    if (int.parse(_textEditingControllerMinAge.text) < 18 ||
+        int.parse(_textEditingControllerMaxAge.text) < 18)
+      message += "\n • users must be at least 18 years old";
+    if (int.parse(_textEditingControllerMinAge.text) >
+        int.parse(_textEditingControllerMaxAge.text))
+      message +=
+          "\n • the min age of the user you are looking for is not higher than the max age";
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+            title: Text(
+              "Sorry",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Text(message)));
   }
 
   @override
@@ -80,23 +105,26 @@ class _CreateProfileState extends State<CreateProfile> {
                   Text(
                     "Please enter your age:",
                   ),
-                  FlatButton(
-                    child: Text(
-                      "Select age",
-                      style: TextStyle(color: Colors.white),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FlatButton(
+                      child: Text(
+                        "Select age",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      color: secondaryColor,
+                      onPressed: () async {
+                        _age = await showDatePicker(
+                          context: context,
+                          initialDate:
+                              DateTime.now().subtract(Duration(days: 356 * 18)),
+                          firstDate:
+                              DateTime.now().subtract(Duration(days: 356 * 80)),
+                          lastDate:
+                              DateTime.now().subtract(Duration(days: 356 * 18)),
+                        );
+                      },
                     ),
-                    color: secondaryColor,
-                    onPressed: () async {
-                      _age = await showDatePicker(
-                        context: context,
-                        initialDate:
-                            DateTime.now().subtract(Duration(days: 356 * 18)),
-                        firstDate:
-                            DateTime.now().subtract(Duration(days: 356 * 80)),
-                        lastDate:
-                            DateTime.now().subtract(Duration(days: 356 * 18)),
-                      );
-                    },
                   )
                 ],
               ),
@@ -116,7 +144,6 @@ class _CreateProfileState extends State<CreateProfile> {
                           onChanged: (newGender) {
                             setState(() {
                               _gender = !newGender;
-                              _genderLockingFor = newGender;
                             });
                           },
                           inactiveTrackColor: mainColor,
@@ -134,7 +161,6 @@ class _CreateProfileState extends State<CreateProfile> {
                     "Please select your country and staate:",
                   ),
                   DropdownButton<String>(
-                    style: TextStyle(color: Colors.white),
                     value: selectedCountry,
                     onChanged: (String newCountry) {
                       setState(() {
@@ -152,7 +178,6 @@ class _CreateProfileState extends State<CreateProfile> {
                     }).toList(),
                   ),
                   DropdownButton<String>(
-                    style: TextStyle(color: Colors.white),
                     value: selectedState,
                     onChanged: (String newState) {
                       setState(() {
@@ -166,33 +191,6 @@ class _CreateProfileState extends State<CreateProfile> {
                       );
                     }).toList(),
                   ),
-                ],
-              ),
-              InnerPageUserData(
-                children: <Widget>[
-                  Text(
-                    "Please select your gender you are looking for:",
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Male"),
-                      Theme(
-                        data: ThemeData(accentColor: Colors.white),
-                        child: Switch(
-                          value: !_genderLockingFor,
-                          onChanged: (newGender) {
-                            setState(() {
-                              _genderLockingFor = !newGender;
-                            });
-                          },
-                          inactiveTrackColor: mainColor,
-                          activeTrackColor: secondaryColor,
-                        ),
-                      ),
-                      Text("Female")
-                    ],
-                  )
                 ],
               ),
               InnerPageUserData(
@@ -240,8 +238,14 @@ class _CreateProfileState extends State<CreateProfile> {
                 children: <Widget>[
                   FlatButton(
                     color: secondaryColor,
-                    child: Text("Create Video", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    onPressed: () {},
+                    child: Text("Record Video",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
+                    onPressed: () {
+                      _checkProfile();
+                    },
                   )
                 ],
               )
