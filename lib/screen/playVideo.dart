@@ -10,7 +10,7 @@ class PlayVideo extends StatefulWidget {
 
 class _PlayVideoState extends State<PlayVideo> {
   VideoPlayerController _videoPlayerController;
-  bool playing = false;
+  bool _playing = false;
   @override
   void initState() {
     super.initState();
@@ -23,6 +23,7 @@ class _PlayVideoState extends State<PlayVideo> {
       if (videoUrl != null) {
         _videoPlayerController = VideoPlayerController.network(videoUrl);
         await _videoPlayerController.initialize();
+        _videoPlayerController.setLooping(true);
         setState(() {});
       }
     });
@@ -38,21 +39,29 @@ class _PlayVideoState extends State<PlayVideo> {
   Widget build(BuildContext context) {
     return Stack(children: <Widget>[
       (_videoPlayerController != null)
-          ? Transform.scale(
-              scale: _videoPlayerController.value.aspectRatio /
-                  (MediaQuery.of(context).size.width /
-                      MediaQuery.of(context).size.height),
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: _videoPlayerController.value.aspectRatio,
-                  child: VideoPlayer(_videoPlayerController),
+          ? GestureDetector(
+              onTap: () {
+                _videoPlayerController.pause();
+                setState(() {
+                  _playing = false;
+                });
+              },
+              child: Transform.scale(
+                scale: _videoPlayerController.value.aspectRatio /
+                    (MediaQuery.of(context).size.width /
+                        MediaQuery.of(context).size.height),
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: _videoPlayerController.value.aspectRatio,
+                    child: VideoPlayer(_videoPlayerController),
+                  ),
                 ),
               ),
             )
           : Center(
               child: CircularProgressIndicator(),
             ),
-      (!playing && _videoPlayerController != null)
+      (!_playing && _videoPlayerController != null)
           ? Align(
               alignment: Alignment.center,
               child: IconButton(
@@ -60,7 +69,7 @@ class _PlayVideoState extends State<PlayVideo> {
                   if (_videoPlayerController != null) {
                     _videoPlayerController.play();
                     setState(() {
-                      playing = true;
+                      _playing = true;
                     });
                   }
                 },
@@ -76,19 +85,20 @@ class _PlayVideoState extends State<PlayVideo> {
         alignment: Alignment(.95, -.95),
         child: FloatingActionButton(
           mini: true,
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.white,
           onPressed: () {},
-          child: Icon(Icons.report),
+          child: Icon(Icons.report, color: Colors.red,),
         ),
       ),
       Align(
         alignment: Alignment(-.5, .8),
         child: FloatingActionButton(
           onPressed: () {},
-          backgroundColor: secondaryColor,
+          backgroundColor: Colors.white,
           child: Icon(
             Icons.navigate_next,
             size: 40,
+            color: secondaryColor,
           ),
         ),
       ),
@@ -96,19 +106,25 @@ class _PlayVideoState extends State<PlayVideo> {
         alignment: Alignment(0, .9),
         child: FloatingActionButton(
           mini: true,
-          backgroundColor: Colors.lightGreen,
+          backgroundColor: Colors.white,
           onPressed: () {
             _videoPlayerController.seekTo(Duration(seconds: 0));
           },
-          child: Icon(Icons.refresh),
+          child: Icon(
+            Icons.refresh,
+            color: Colors.lightGreen,
+          ),
         ),
       ),
       Align(
         alignment: Alignment(.5, .8),
         child: FloatingActionButton(
           onPressed: () {},
-          child: Icon(Icons.thumb_up),
-          backgroundColor: mainColor,
+          child: Icon(
+            Icons.thumb_up,
+            color: mainColor,
+          ),
+          backgroundColor: Colors.white,
         ),
       )
     ]);

@@ -45,8 +45,8 @@ class _VMScaffoldState extends State<VMScaffold> {
                     begin: Alignment.topLeft,
                     end: Alignment(.75, .75),
                     colors: [
-                      mainColor.withOpacity(.8),
-                      secondaryColor.withOpacity(.8)
+                      mainColor,
+                      secondaryColor
                     ],
                     tileMode: TileMode.repeated,
                   ),
