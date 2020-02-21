@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
               thumbColor: Colors.white),
           floatingActionButtonTheme:
               FloatingActionButtonThemeData(backgroundColor: mainColor)),
-      home: HomeScreen()
+      home: CreateProfile()
     );
   }
 }

@@ -11,17 +11,20 @@ class CreateProfile extends StatefulWidget {
 
 class _CreateProfileState extends State<CreateProfile> {
   PageController _pageController = PageController();
-  TextEditingController _textEditingControllerFirstName =
-      TextEditingController();
-  TextEditingController _textEditingControllerUserAge = TextEditingController();
-  TextEditingController _textEditingControllerMinAge =
-      TextEditingController(text: "18");
-  TextEditingController _textEditingControllerMaxAge =
-      TextEditingController(text: "80");
+  int currentPage = 0;
+
+  String firstName = "", userAge = "", minAge = "", maxAge = "";
+
+  TextEditingController fNTec = TextEditingController(),
+      uATec = TextEditingController(),
+      mATec = TextEditingController(),
+      maxATec = TextEditingController();
+
   bool _gender = true;
   String selectedCountry, selectedState;
   List<String> countries = List<String>();
   List<String> states = List<String>();
+  bool videoCreated = false;
 
   List<String> statesOfCountrie(String country) {
     List<String> statesTemp = List<String>();
@@ -35,38 +38,32 @@ class _CreateProfileState extends State<CreateProfile> {
 
   _createProfile() async {
     String message = "";
-    if (_textEditingControllerFirstName.text.isEmpty)
-      message += " \n • your name is missing";
+    if (firstName.isEmpty) message += " \n • your name is missing";
 
-    if (_textEditingControllerUserAge.text.isEmpty)
+    if (userAge.isEmpty)
       message += " \n • your age is not set";
     else {
-      if (int.parse(_textEditingControllerUserAge.text) > 80 ||
-          (int.parse(_textEditingControllerUserAge.text) < 18))
+      if (int.parse(userAge) > 80 || (int.parse(userAge) < 18))
         message += "\n • you must be between 18 and 80 years old";
     }
 
-    if (selectedCountry == "None") message += "\n • our country is not selected";
+    if (selectedCountry == "None")
+      message += "\n • our country is not selected";
 
-    if (_textEditingControllerMinAge.text.isEmpty ||
-        _textEditingControllerMaxAge.text.isEmpty)
+    if (minAge.isEmpty || minAge.isEmpty)
       message +=
           " \n • set the min and max age of the user you are looking for";
     else {
-      if (int.parse(_textEditingControllerMinAge.text) > 80 ||
-          (int.parse(_textEditingControllerMaxAge.text) > 80))
+      if (int.parse(minAge) > 80 || (int.parse(maxAge) > 80))
         message += "\n • users can max be 80 years old";
 
-      if (int.parse(_textEditingControllerMinAge.text) < 18 ||
-          (int.parse(_textEditingControllerMaxAge.text) < 18))
+      if (int.parse(minAge) < 18 || (int.parse(maxAge) < 18))
         message += "\n • users must be at least 18 years old";
 
-      if (int.parse(_textEditingControllerMinAge.text) >
-          int.parse(_textEditingControllerMaxAge.text))
+      if (int.parse(minAge) > int.parse(maxAge))
         message +=
             "\n • the min age of the user you are looking for is not higher than the max age";
     }
-    if (selfieVideoCreated == false) message += "\n • please create a video";
 
     await showDialog(
         context: context,
@@ -125,14 +122,15 @@ class _CreateProfileState extends State<CreateProfile> {
                   Container(
                     width: 200,
                     child: TextField(
-                      controller: _textEditingControllerFirstName,
+                      autofocus: true,
+                      controller: fNTec,
                       maxLength: 20,
-                      onSubmitted: (_) {
-                        _pageController.nextPage(
-                            duration: Duration(milliseconds: 200),
-                            curve: Curves.decelerate);
-                      },
                       textAlign: TextAlign.center,
+                      onChanged: (input) {
+                        setState(() {
+                          firstName = input;
+                        });
+                      },
                     ),
                   )
                 ],
@@ -145,15 +143,15 @@ class _CreateProfileState extends State<CreateProfile> {
                   Container(
                     width: 40,
                     child: TextField(
-                      controller: _textEditingControllerUserAge,
+                      controller: uATec,
                       maxLength: 2,
                       keyboardType: TextInputType.number,
-                      onSubmitted: (_) {
-                        _pageController.nextPage(
-                            duration: Duration(milliseconds: 200),
-                            curve: Curves.decelerate);
-                      },
                       textAlign: TextAlign.center,
+                      onChanged: (input) {
+                        setState(() {
+                          userAge = input;
+                        });
+                      },
                     ),
                   )
                 ],
@@ -237,16 +235,21 @@ class _CreateProfileState extends State<CreateProfile> {
                       children: <Widget>[
                         Flexible(
                           child: TextField(
-                            controller: _textEditingControllerMinAge,
+                            controller: mATec,
                             keyboardType: TextInputType.number,
                             maxLength: 2,
                             textAlign: TextAlign.center,
+                            onChanged: (input) {
+                              setState(() {
+                                minAge = input;
+                              });
+                            },
                           ),
                         ),
                         Text("-"),
                         Flexible(
                           child: TextField(
-                            controller: _textEditingControllerMaxAge,
+                            controller: maxATec,
                             keyboardType: TextInputType.number,
                             maxLength: 2,
                             onSubmitted: (_) {
@@ -255,6 +258,11 @@ class _CreateProfileState extends State<CreateProfile> {
                                   curve: Curves.decelerate);
                             },
                             textAlign: TextAlign.center,
+                            onChanged: (input) {
+                              setState(() {
+                                maxAge = input;
+                              });
+                            },
                           ),
                         ),
                       ],
@@ -262,7 +270,9 @@ class _CreateProfileState extends State<CreateProfile> {
                   )
                 ],
               ),
-              CreateVideo(),
+              CreateVideo(onVideoCreated: (){setState(() {
+                videoCreated = true;
+              });},),
               InnerPageUserData(
                 children: <Widget>[
                   FlatButton(
@@ -280,35 +290,78 @@ class _CreateProfileState extends State<CreateProfile> {
               )
             ],
           ),
-          Align(
-            alignment: Alignment(-.9, .95),
-            child: FloatingActionButton(
-                child: Icon(
-                  Icons.navigate_before,
-                  color: secondaryColor,
-                ),
-                backgroundColor: Colors.white,
-                onPressed: () {
-                  _pageController.previousPage(
-                      duration: Duration(milliseconds: 200),
-                      curve: Curves.decelerate);
-                  FocusScope.of(context).requestFocus(FocusNode());
-                }),
-          ),
+          (currentPage >= 1 && currentPage < 5)
+              ? Align(
+                  alignment: Alignment(-.9, .95),
+                  child: FloatingActionButton(
+                      child: Icon(
+                        Icons.navigate_before,
+                        color: secondaryColor,
+                      ),
+                      backgroundColor: Colors.white,
+                      onPressed: () async {
+                        await _pageController.previousPage(
+                            duration: Duration(milliseconds: 200),
+                            curve: Curves.decelerate);
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        setState(() {
+                          currentPage = _pageController.page.toInt();
+                        });
+                      }),
+                )
+              : Container(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(
-          Icons.navigate_next,
-          color: mainColor,
-        ),
-        backgroundColor: Colors.white,
-        onPressed: () {
-          _pageController.nextPage(
-              duration: Duration(milliseconds: 200), curve: Curves.decelerate);
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-      ),
+      floatingActionButton:
+          (currentPage == 0 && firstName.isNotEmpty && firstName.length > 2 ||
+                  currentPage == 1 &&
+                      (int.parse(userAge, onError: (_) {
+                                return 100;
+                              }) <=
+                              80 &&
+                          (int.parse(userAge, onError: (_) {
+                                return 0;
+                              }) >=
+                              18)) ||
+                  currentPage == 2 ||
+                  currentPage == 3 && selectedCountry != "None" ||
+                  currentPage == 4 && (int.parse(minAge, onError: (_) {
+                                return 100;
+                              }) <=
+                              80 &&
+                          (int.parse(minAge, onError: (_) {
+                                return 0;
+                              }) >=
+                              18)) && (int.parse(maxAge, onError: (_) {
+                                return 100;
+                              }) <=
+                              80 &&
+                          (int.parse(maxAge, onError: (_) {
+                                return 0;
+                              }) >=
+                              18)) && int.parse(minAge, onError: (_) {
+                                return 0;
+                              }) <= int.parse(maxAge, onError: (_) {
+                                return 0;
+                              }) ||
+                              currentPage == 5 && videoCreated)
+              ? FloatingActionButton(
+                  child: Icon(
+                    Icons.navigate_next,
+                    color: mainColor,
+                  ),
+                  backgroundColor: Colors.white,
+                  onPressed: () async {
+                    await _pageController.nextPage(
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.decelerate);
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    setState(() {
+                      currentPage = _pageController.page.toInt();
+                    });
+                  },
+                )
+              : null,
     );
   }
 }

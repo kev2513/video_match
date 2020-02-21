@@ -8,9 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_player/video_player.dart';
 
-bool selfieVideoCreated = false;
-
 class CreateVideo extends StatefulWidget {
+  CreateVideo({this.onVideoCreated});
+  final Function onVideoCreated;
   @override
   _CreateVideoState createState() => _CreateVideoState();
 }
@@ -70,7 +70,8 @@ class _CreateVideoState extends State<CreateVideo> {
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
       _videoPlay = false;
-      await _cameraController.takePicture(await _getSelfiePath(deleteOnExist: true));
+      await _cameraController
+          .takePicture(await _getSelfiePath(deleteOnExist: true));
       await _cameraController
           .startVideoRecording(await _getSelfVideoPath(deleteOnExist: true));
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
@@ -90,7 +91,7 @@ class _CreateVideoState extends State<CreateVideo> {
   _stopRecording() async {
     if (!_recordState) {
       _cameraController.stopVideoRecording();
-      selfieVideoCreated = true;
+      widget.onVideoCreated();
       await _initVideoPlayer();
       setState(() {
         _recodringTimer = null;
@@ -163,8 +164,8 @@ class _CreateVideoState extends State<CreateVideo> {
                           });
                         },
                         child: Icon(
-                          Icons.replay,
-                          color: mainColor,
+                          Icons.delete,
+                          color: Colors.red,
                         ),
                       ),
                     )
