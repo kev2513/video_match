@@ -3,11 +3,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_player/video_player.dart';
+
+bool selfieVideoCreated = false;
 
 class CreateVideo extends StatefulWidget {
   @override
@@ -57,9 +58,19 @@ class _CreateVideoState extends State<CreateVideo> {
     return videoFilePath.path;
   }
 
+  Future<String> _getSelfiePath({bool deleteOnExist = false}) async {
+    File selfieFilePath =
+        File((await getTemporaryDirectory()).path + "/selfie.jpg");
+    if (await selfieFilePath.exists() && deleteOnExist) {
+      await selfieFilePath.delete();
+    }
+    return selfieFilePath.path;
+  }
+
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
       _videoPlay = false;
+      await _cameraController.takePicture(await _getSelfiePath(deleteOnExist: true));
       await _cameraController
           .startVideoRecording(await _getSelfVideoPath(deleteOnExist: true));
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
@@ -79,6 +90,7 @@ class _CreateVideoState extends State<CreateVideo> {
   _stopRecording() async {
     if (!_recordState) {
       _cameraController.stopVideoRecording();
+      selfieVideoCreated = true;
       await _initVideoPlayer();
       setState(() {
         _recodringTimer = null;
@@ -102,9 +114,13 @@ class _CreateVideoState extends State<CreateVideo> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text(
-                  "Please allow access to your camera and microphone",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "Please allow access to your camera and microphone to record your video",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 Divider(),
                 FlatButton(
@@ -137,33 +153,19 @@ class _CreateVideoState extends State<CreateVideo> {
               ),
               (_videoPlay)
                   ? Align(
-                      alignment: Alignment(-.5, .8),
+                      alignment: Alignment(0, .8),
                       child: FloatingActionButton(
+                        backgroundColor: Colors.white,
                         onPressed: () {
                           setState(() {
                             _videoPlay = false;
                             _videoPlayerController.pause();
                           });
                         },
-                        child: Icon(Icons.replay),
-                      ),
-                    )
-                  : Container(),
-              (_videoPlay)
-                  ? Align(
-                      alignment: Alignment(.5, .8),
-                      child: FloatingActionButton(
-                        onPressed: () async {
-                          final StorageUploadTask uploadTask = FirebaseStorage()
-                              .ref()
-                              .child("path.mp4")
-                              .putFile(File(await _getSelfVideoPath()));
-
-                          await uploadTask.onComplete;
-                          print("uploade done!");
-                        },
-                        child: Icon(Icons.file_upload),
-                        backgroundColor: Colors.green,
+                        child: Icon(
+                          Icons.replay,
+                          color: mainColor,
+                        ),
                       ),
                     )
                   : Container(),
@@ -193,9 +195,11 @@ class _CreateVideoState extends State<CreateVideo> {
                   ? Align(
                       alignment: Alignment(0, .9),
                       child: FloatingActionButton(
-                        child: Icon((_recordState)
-                            ? Icons.fiber_manual_record
-                            : Icons.stop),
+                        child: Icon(
+                            (_recordState)
+                                ? Icons.fiber_manual_record
+                                : Icons.stop,
+                            color: (_recordState) ? Colors.red : mainColor),
                         onPressed: () {
                           if (_recordState)
                             _startRecording();
@@ -204,8 +208,7 @@ class _CreateVideoState extends State<CreateVideo> {
                             _stopRecording();
                           }
                         },
-                        backgroundColor:
-                            (_recordState) ? Colors.red : mainColor,
+                        backgroundColor: Colors.white,
                       ),
                     )
                   : Container(),
