@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:video_match/screen/createProfile.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
@@ -19,6 +20,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           accentColor: secondaryColor,
           primaryColor: mainColor,
+          textTheme: GoogleFonts.montserratTextTheme(
+            Theme.of(context).textTheme,
+          ),
           appBarTheme: AppBarTheme(color: Colors.white),
           sliderTheme: SliderThemeData(
               activeTrackColor: mainColor,
@@ -26,7 +30,7 @@ class MyApp extends StatelessWidget {
               thumbColor: Colors.white),
           floatingActionButtonTheme:
               FloatingActionButtonThemeData(backgroundColor: mainColor)),
-      home: CreateProfile(),
+      home: HomeScreen()
     );
   }
 }
