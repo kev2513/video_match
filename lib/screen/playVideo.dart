@@ -91,7 +91,7 @@ class _PlayVideoState extends State<PlayVideo> {
         ),
       ),
       Align(
-        alignment: Alignment(-.5, .8),
+        alignment: Alignment(-.5, .9),
         child: FloatingActionButton(
           onPressed: () {},
           backgroundColor: Colors.white,
@@ -103,21 +103,7 @@ class _PlayVideoState extends State<PlayVideo> {
         ),
       ),
       Align(
-        alignment: Alignment(0, .9),
-        child: FloatingActionButton(
-          mini: true,
-          backgroundColor: Colors.white,
-          onPressed: () {
-            _videoPlayerController.seekTo(Duration(seconds: 0));
-          },
-          child: Icon(
-            Icons.refresh,
-            color: Colors.lightGreen,
-          ),
-        ),
-      ),
-      Align(
-        alignment: Alignment(.5, .8),
+        alignment: Alignment(.5, .9),
         child: FloatingActionButton(
           onPressed: () {},
           child: Icon(
