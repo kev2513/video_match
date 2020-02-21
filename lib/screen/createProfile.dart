@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/country_states.dart';
+import 'package:video_match/screen/createVideo.dart';
 
 class CreateProfile extends StatefulWidget {
   @override
@@ -12,11 +13,11 @@ class _CreateProfileState extends State<CreateProfile> {
   PageController _pageController = PageController();
   TextEditingController _textEditingControllerFirstName =
       TextEditingController();
+  TextEditingController _textEditingControllerUserAge = TextEditingController();
   TextEditingController _textEditingControllerMinAge =
       TextEditingController(text: "18");
   TextEditingController _textEditingControllerMaxAge =
       TextEditingController(text: "80");
-  DateTime _age;
   bool _gender = true;
   String selectedCountry, selectedState;
   List<String> countries = List<String>();
@@ -32,30 +33,67 @@ class _CreateProfileState extends State<CreateProfile> {
     return statesTemp;
   }
 
-  _checkProfile() {
+  _createProfile() async {
     String message = "";
     if (_textEditingControllerFirstName.text.isEmpty)
       message += " \n • your name is missing";
-    if (_age == null) message += "\n • your age is not set";
-    if (selectedCountry == "None") message += "\n • please enter our country";
-    if (int.parse(_textEditingControllerMinAge.text) > 80 ||
-        int.parse(_textEditingControllerMaxAge.text) > 80)
-      message += "\n • users can max be 80 years old";
-    if (int.parse(_textEditingControllerMinAge.text) < 18 ||
-        int.parse(_textEditingControllerMaxAge.text) < 18)
-      message += "\n • users must be at least 18 years old";
-    if (int.parse(_textEditingControllerMinAge.text) >
-        int.parse(_textEditingControllerMaxAge.text))
+
+    if (_textEditingControllerUserAge.text.isEmpty)
+      message += " \n • your age is not set";
+    else {
+      if (int.parse(_textEditingControllerUserAge.text) > 80 ||
+          (int.parse(_textEditingControllerUserAge.text) < 18))
+        message += "\n • you must be between 18 and 80 years old";
+    }
+
+    if (selectedCountry == "None") message += "\n • our country is not selected";
+
+    if (_textEditingControllerMinAge.text.isEmpty ||
+        _textEditingControllerMaxAge.text.isEmpty)
       message +=
-          "\n • the min age of the user you are looking for is not higher than the max age";
-    showDialog(
+          " \n • set the min and max age of the user you are looking for";
+    else {
+      if (int.parse(_textEditingControllerMinAge.text) > 80 ||
+          (int.parse(_textEditingControllerMaxAge.text) > 80))
+        message += "\n • users can max be 80 years old";
+
+      if (int.parse(_textEditingControllerMinAge.text) < 18 ||
+          (int.parse(_textEditingControllerMaxAge.text) < 18))
+        message += "\n • users must be at least 18 years old";
+
+      if (int.parse(_textEditingControllerMinAge.text) >
+          int.parse(_textEditingControllerMaxAge.text))
+        message +=
+            "\n • the min age of the user you are looking for is not higher than the max age";
+    }
+    if (selfieVideoCreated == false) message += "\n • please create a video";
+
+    await showDialog(
         context: context,
         builder: (_) => AlertDialog(
-            title: Text(
-              "Sorry",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: Text(message)));
+              title: Text(
+                "Sorry",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Text(message),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
+    if (message != "") return;
+    /*final StorageUploadTask uploadTask = FirebaseStorage()
+    .ref()
+    .child("path.mp4")
+    .putFile(File(await _getSelfVideoPath()));
+
+    await uploadTask.onComplete;
+    print("uploade done!");
+    */
   }
 
   @override
@@ -73,7 +111,7 @@ class _CreateProfileState extends State<CreateProfile> {
   Widget build(BuildContext context) {
     return VMScaffold(
       colorfulBackground: true,
-      child: Stack(
+      body: Stack(
         children: <Widget>[
           PageView(
             controller: _pageController,
@@ -89,7 +127,6 @@ class _CreateProfileState extends State<CreateProfile> {
                     child: TextField(
                       controller: _textEditingControllerFirstName,
                       maxLength: 20,
-                      style: TextStyle(color: Colors.white),
                       onSubmitted: (_) {
                         _pageController.nextPage(
                             duration: Duration(milliseconds: 200),
@@ -105,25 +142,18 @@ class _CreateProfileState extends State<CreateProfile> {
                   Text(
                     "Please enter your age:",
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FlatButton(
-                      child: Text(
-                        "Select age",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      color: secondaryColor,
-                      onPressed: () async {
-                        _age = await showDatePicker(
-                          context: context,
-                          initialDate:
-                              DateTime.now().subtract(Duration(days: 356 * 18)),
-                          firstDate:
-                              DateTime.now().subtract(Duration(days: 356 * 80)),
-                          lastDate:
-                              DateTime.now().subtract(Duration(days: 356 * 18)),
-                        );
+                  Container(
+                    width: 40,
+                    child: TextField(
+                      controller: _textEditingControllerUserAge,
+                      maxLength: 2,
+                      keyboardType: TextInputType.number,
+                      onSubmitted: (_) {
+                        _pageController.nextPage(
+                            duration: Duration(milliseconds: 200),
+                            curve: Curves.decelerate);
                       },
+                      textAlign: TextAlign.center,
                     ),
                   )
                 ],
@@ -210,7 +240,6 @@ class _CreateProfileState extends State<CreateProfile> {
                             controller: _textEditingControllerMinAge,
                             keyboardType: TextInputType.number,
                             maxLength: 2,
-                            style: TextStyle(color: Colors.white),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -220,7 +249,6 @@ class _CreateProfileState extends State<CreateProfile> {
                             controller: _textEditingControllerMaxAge,
                             keyboardType: TextInputType.number,
                             maxLength: 2,
-                            style: TextStyle(color: Colors.white),
                             onSubmitted: (_) {
                               _pageController.nextPage(
                                   duration: Duration(milliseconds: 200),
@@ -234,17 +262,18 @@ class _CreateProfileState extends State<CreateProfile> {
                   )
                 ],
               ),
+              CreateVideo(),
               InnerPageUserData(
                 children: <Widget>[
                   FlatButton(
                     color: secondaryColor,
-                    child: Text("Record Video",
+                    child: Text("Upload Profile",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold)),
                     onPressed: () {
-                      _checkProfile();
+                      _createProfile();
                     },
                   )
                 ],
@@ -254,7 +283,11 @@ class _CreateProfileState extends State<CreateProfile> {
           Align(
             alignment: Alignment(-.9, .95),
             child: FloatingActionButton(
-                child: Icon(Icons.navigate_before),
+                child: Icon(
+                  Icons.navigate_before,
+                  color: secondaryColor,
+                ),
+                backgroundColor: Colors.white,
                 onPressed: () {
                   _pageController.previousPage(
                       duration: Duration(milliseconds: 200),
@@ -265,8 +298,11 @@ class _CreateProfileState extends State<CreateProfile> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.navigate_next),
-        backgroundColor: secondaryColor,
+        child: Icon(
+          Icons.navigate_next,
+          color: mainColor,
+        ),
+        backgroundColor: Colors.white,
         onPressed: () {
           _pageController.nextPage(
               duration: Duration(milliseconds: 200), curve: Curves.decelerate);
@@ -285,13 +321,8 @@ class InnerPageUserData extends StatelessWidget {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(20),
-        child: Material(
-          color: Colors.transparent,
-          textStyle: TextStyle(
-              color: Colors.white, fontSize: 17.5, fontWeight: FontWeight.bold),
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, children: children),
-        ),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, children: children),
       ),
     );
   }
