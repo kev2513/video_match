@@ -12,6 +12,7 @@ class CreateProfile extends StatefulWidget {
 class _CreateProfileState extends State<CreateProfile> {
   PageController _pageController = PageController();
   int currentPage = 0;
+  bool nextPageLock = false;
 
   String firstName = "", userAge = "", minAge = "", maxAge = "";
 
@@ -153,6 +154,13 @@ class _CreateProfileState extends State<CreateProfile> {
                         });
                       },
                     ),
+                  ),
+                  Divider(
+                    color: Colors.transparent,
+                  ),
+                  Text(
+                    "Your age must be between 18 - 80 years",
+                    style: TextStyle(fontStyle: FontStyle.italic),
                   )
                 ],
               ),
@@ -219,6 +227,13 @@ class _CreateProfileState extends State<CreateProfile> {
                       );
                     }).toList(),
                   ),
+                  Divider(
+                    color: Colors.transparent,
+                  ),
+                  Text(
+                    "We respect the data privacy of oure users thats why we wont use GPS.",
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  )
                 ],
               ),
               InnerPageUserData(
@@ -270,9 +285,13 @@ class _CreateProfileState extends State<CreateProfile> {
                   )
                 ],
               ),
-              CreateVideo(onVideoCreated: (){setState(() {
-                videoCreated = true;
-              });},),
+              CreateVideo(
+                onVideoCreated: () {
+                  setState(() {
+                    videoCreated = true;
+                  });
+                },
+              ),
               InnerPageUserData(
                 children: <Widget>[
                   FlatButton(
@@ -325,26 +344,30 @@ class _CreateProfileState extends State<CreateProfile> {
                               18)) ||
                   currentPage == 2 ||
                   currentPage == 3 && selectedCountry != "None" ||
-                  currentPage == 4 && (int.parse(minAge, onError: (_) {
+                  currentPage == 4 &&
+                      (int.parse(minAge, onError: (_) {
                                 return 100;
                               }) <=
                               80 &&
                           (int.parse(minAge, onError: (_) {
                                 return 0;
                               }) >=
-                              18)) && (int.parse(maxAge, onError: (_) {
+                              18)) &&
+                      (int.parse(maxAge, onError: (_) {
                                 return 100;
                               }) <=
                               80 &&
                           (int.parse(maxAge, onError: (_) {
                                 return 0;
                               }) >=
-                              18)) && int.parse(minAge, onError: (_) {
-                                return 0;
-                              }) <= int.parse(maxAge, onError: (_) {
-                                return 0;
-                              }) ||
-                              currentPage == 5 && videoCreated)
+                              18)) &&
+                      int.parse(minAge, onError: (_) {
+                            return 0;
+                          }) <=
+                          int.parse(maxAge, onError: (_) {
+                            return 0;
+                          }) ||
+                  currentPage == 5 && videoCreated)
               ? FloatingActionButton(
                   child: Icon(
                     Icons.navigate_next,
@@ -352,13 +375,20 @@ class _CreateProfileState extends State<CreateProfile> {
                   ),
                   backgroundColor: Colors.white,
                   onPressed: () async {
-                    await _pageController.nextPage(
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.decelerate);
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    setState(() {
-                      currentPage = _pageController.page.toInt();
-                    });
+                    if (!nextPageLock) {
+                      nextPageLock = true;
+                      setState(() {
+                        currentPage = _pageController.page.toInt() + 1;
+                      });
+                      await _pageController.nextPage(
+                          duration: Duration(milliseconds: 200),
+                          curve: Curves.decelerate);
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      nextPageLock = false;
+                      setState(() {
+                        currentPage = _pageController.page.toInt();
+                      });
+                    }
                   },
                 )
               : null,
