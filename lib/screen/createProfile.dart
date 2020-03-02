@@ -231,8 +231,9 @@ class _CreateProfileState extends State<CreateProfile> {
                     color: Colors.transparent,
                   ),
                   Text(
-                    "We respect the data privacy of oure users thats why we wont use GPS.",
+                    "We respect the data privacy of our users that's why we wont use GPS.",
                     style: TextStyle(fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
                   )
                 ],
               ),
@@ -282,6 +283,13 @@ class _CreateProfileState extends State<CreateProfile> {
                         ),
                       ],
                     ),
+                  ),
+                  Divider(
+                    color: Colors.transparent,
+                  ),
+                  Text(
+                    "The age must be between 18 - 80 years",
+                    style: TextStyle(fontStyle: FontStyle.italic),
                   )
                 ],
               ),
@@ -289,6 +297,11 @@ class _CreateProfileState extends State<CreateProfile> {
                 onVideoCreated: () {
                   setState(() {
                     videoCreated = true;
+                  });
+                },
+                onVideoDeleted: (){
+                  setState(() {
+                    videoCreated = false;
                   });
                 },
               ),
@@ -385,9 +398,6 @@ class _CreateProfileState extends State<CreateProfile> {
                           curve: Curves.decelerate);
                       FocusScope.of(context).requestFocus(FocusNode());
                       nextPageLock = false;
-                      setState(() {
-                        currentPage = _pageController.page.toInt();
-                      });
                     }
                   },
                 )

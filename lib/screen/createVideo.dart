@@ -3,14 +3,16 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_player/video_player.dart';
 
 class CreateVideo extends StatefulWidget {
-  CreateVideo({this.onVideoCreated});
+  CreateVideo({this.onVideoCreated, this.onVideoDeleted});
   final Function onVideoCreated;
+  final Function onVideoDeleted;
   @override
   _CreateVideoState createState() => _CreateVideoState();
 }
@@ -44,9 +46,31 @@ class _CreateVideoState extends State<CreateVideo> {
           setState(() {
             _cameraGranted = true;
           });
+          _showHintDialog();
         });
       }
     });
+  }
+
+  _showHintDialog() {
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(
+                "Hint:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Text(
+                  "• Be clearly visible in the video\n• Tell something about you in the first half of the video\n• Say what you are looking for in the second half\nOn average peole need 7 seconds to judge if they like someone so make your 15 seconds count. You can record as may times as you like. The last video you recoded will be uploaded."),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
   }
 
   Future<String> _getSelfVideoPath({bool deleteOnExist = false}) async {
@@ -91,7 +115,6 @@ class _CreateVideoState extends State<CreateVideo> {
   _stopRecording() async {
     if (!_recordState) {
       _cameraController.stopVideoRecording();
-      widget.onVideoCreated();
       await _initVideoPlayer();
       setState(() {
         _recodringTimer = null;
@@ -99,7 +122,36 @@ class _CreateVideoState extends State<CreateVideo> {
         _recordState = true;
         _videoPlay = true;
       });
+      if (!(await _checkFace() > 0)) {
+        showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+                  title: Text(
+                    "Sorry",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: Text("No face found please be clearly visible. At the beginning of the video."),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text("Close"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    )
+                  ],
+                ));
+      } else {
+        widget.onVideoCreated();
+      }
     }
+  }
+
+  Future<int> _checkFace() async {
+    FirebaseVisionImage visionImage =
+        FirebaseVisionImage.fromFilePath(await _getSelfiePath());
+    FaceDetector faceDetector = FirebaseVision.instance.faceDetector();
+    List<Face> faces = await faceDetector.processImage(visionImage);
+    return faces.length;
   }
 
   @override
@@ -161,6 +213,7 @@ class _CreateVideoState extends State<CreateVideo> {
                           setState(() {
                             _videoPlay = false;
                             _videoPlayerController.pause();
+                            widget.onVideoDeleted();
                           });
                         },
                         child: Icon(
