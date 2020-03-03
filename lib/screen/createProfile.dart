@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/country_states.dart';
 import 'package:video_match/screen/createVideo.dart';
+import 'package:video_match/utils/ui/button.dart';
 
 class CreateProfile extends StatefulWidget {
   @override
@@ -66,32 +70,63 @@ class _CreateProfileState extends State<CreateProfile> {
             "\n • the min age of the user you are looking for is not higher than the max age";
     }
 
-    await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: Text(
-                "Sorry",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Text(message),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text("Close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            ));
-    if (message != "") return;
-    /*final StorageUploadTask uploadTask = FirebaseStorage()
-    .ref()
-    .child("path.mp4")
-    .putFile(File(await _getSelfVideoPath()));
+    if (message != "") {
+      await showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: Text(
+                  "Sorry",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: Text(message),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text("Close"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ],
+              ));
+      return;
+    }
 
-    await uploadTask.onComplete;
+    StorageUploadTask uploadTaskVideo = FirebaseStorage()
+        .ref()
+        .child("video.mp4")
+        .putFile(File(await getSelfVideoPath()));
+    StorageUploadTask uploadTaskSelfie = FirebaseStorage()
+        .ref()
+        .child("selfie.jpg")
+        .putFile(File(await getSelfiePath()));
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: AlertDialog(
+                title: Text(
+                  "Uploading",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    SizedBox(
+                        height: 25,
+                        width: 25,
+                        child: CircularProgressIndicator(
+                          backgroundColor: mainColor,
+                        )),
+                  ],
+                ),
+              ),
+            ));
+    await uploadTaskVideo.onComplete;
+    await uploadTaskSelfie.onComplete;
+    Navigator.of(context).pop();
     print("uploade done!");
-    */
   }
 
   @override
@@ -299,7 +334,7 @@ class _CreateProfileState extends State<CreateProfile> {
                     videoCreated = true;
                   });
                 },
-                onVideoDeleted: (){
+                onVideoDeleted: () {
                   setState(() {
                     videoCreated = false;
                   });
@@ -307,17 +342,11 @@ class _CreateProfileState extends State<CreateProfile> {
               ),
               InnerPageUserData(
                 children: <Widget>[
-                  FlatButton(
+                  RoundedButton(
+                    text: "Upload Profile",
                     color: secondaryColor,
-                    child: Text("Upload Profile",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold)),
-                    onPressed: () {
-                      _createProfile();
-                    },
-                  )
+                    onPressed: () => _createProfile(),
+                  ),
                 ],
               )
             ],

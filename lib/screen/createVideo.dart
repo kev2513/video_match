@@ -9,6 +9,24 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_player/video_player.dart';
 
+Future<String> getSelfVideoPath({bool deleteOnExist = false}) async {
+  File videoFilePath =
+      File((await getTemporaryDirectory()).path + "/selfVideo.mp4");
+  if (await videoFilePath.exists() && deleteOnExist) {
+    await videoFilePath.delete();
+  }
+  return videoFilePath.path;
+}
+
+Future<String> getSelfiePath({bool deleteOnExist = false}) async {
+  File selfieFilePath =
+      File((await getTemporaryDirectory()).path + "/selfie.jpg");
+  if (await selfieFilePath.exists() && deleteOnExist) {
+    await selfieFilePath.delete();
+  }
+  return selfieFilePath.path;
+}
+
 class CreateVideo extends StatefulWidget {
   CreateVideo({this.onVideoCreated, this.onVideoDeleted});
   final Function onVideoCreated;
@@ -28,10 +46,9 @@ class _CreateVideoState extends State<CreateVideo> {
   VideoPlayerController _videoPlayerController;
 
   _initVideoPlayer() async {
-    String path = await _getSelfVideoPath();
+    String path = await getSelfVideoPath();
     _videoPlayerController = VideoPlayerController.file(File(path));
     _videoPlayerController.initialize();
-    _videoPlayerController.setLooping(true);
     _videoPlayerController.play();
   }
 
@@ -61,7 +78,7 @@ class _CreateVideoState extends State<CreateVideo> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               content: Text(
-                  "• Be clearly visible in the video\n• Tell something about you in the first half of the video\n• Say what you are looking for in the second half\nOn average peole need 7 seconds to judge if they like someone so make your 15 seconds count. You can record as may times as you like. The last video you recoded will be uploaded."),
+                  "• Be clearly visible in the video\n• Tell something about you in the first half of the video\n• Say what you are looking for in the second half\n\nOn average peole need 7 seconds to judge if they like someone so make your 15 seconds count. You can record as may times as you like. The last video you record will be uploaded."),
               actions: <Widget>[
                 FlatButton(
                   child: Text("Close"),
@@ -73,31 +90,13 @@ class _CreateVideoState extends State<CreateVideo> {
             ));
   }
 
-  Future<String> _getSelfVideoPath({bool deleteOnExist = false}) async {
-    File videoFilePath =
-        File((await getTemporaryDirectory()).path + "/selfVideo.mp4");
-    if (await videoFilePath.exists() && deleteOnExist) {
-      await videoFilePath.delete();
-    }
-    return videoFilePath.path;
-  }
-
-  Future<String> _getSelfiePath({bool deleteOnExist = false}) async {
-    File selfieFilePath =
-        File((await getTemporaryDirectory()).path + "/selfie.jpg");
-    if (await selfieFilePath.exists() && deleteOnExist) {
-      await selfieFilePath.delete();
-    }
-    return selfieFilePath.path;
-  }
-
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
       _videoPlay = false;
       await _cameraController
-          .takePicture(await _getSelfiePath(deleteOnExist: true));
+          .takePicture(await getSelfiePath(deleteOnExist: true));
       await _cameraController
-          .startVideoRecording(await _getSelfVideoPath(deleteOnExist: true));
+          .startVideoRecording(await getSelfVideoPath(deleteOnExist: true));
       _recodringTimer = Timer.periodic(Duration(milliseconds: 60), (timer) {
         if (_sliderProgress < .996)
           setState(() {
@@ -130,7 +129,8 @@ class _CreateVideoState extends State<CreateVideo> {
                     "Sorry",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  content: Text("No face found please be clearly visible. At the beginning of the video."),
+                  content: Text(
+                      "No face found please be clearly visible. At the beginning of the video."),
                   actions: <Widget>[
                     FlatButton(
                       child: Text("Close"),
@@ -148,7 +148,7 @@ class _CreateVideoState extends State<CreateVideo> {
 
   Future<int> _checkFace() async {
     FirebaseVisionImage visionImage =
-        FirebaseVisionImage.fromFilePath(await _getSelfiePath());
+        FirebaseVisionImage.fromFilePath(await getSelfiePath());
     FaceDetector faceDetector = FirebaseVision.instance.faceDetector();
     List<Face> faces = await faceDetector.processImage(visionImage);
     return faces.length;
@@ -206,7 +206,7 @@ class _CreateVideoState extends State<CreateVideo> {
               ),
               (_videoPlay)
                   ? Align(
-                      alignment: Alignment(0, .8),
+                      alignment: Alignment(.4, .8),
                       child: FloatingActionButton(
                         backgroundColor: Colors.white,
                         onPressed: () {
@@ -219,6 +219,21 @@ class _CreateVideoState extends State<CreateVideo> {
                         child: Icon(
                           Icons.delete,
                           color: Colors.red,
+                        ),
+                      ),
+                    )
+                  : Container(),
+              (_videoPlay)
+                  ? Align(
+                      alignment: Alignment(-.4, .8),
+                      child: FloatingActionButton(
+                        backgroundColor: Colors.white,
+                        onPressed: () {
+                          _videoPlayerController.seekTo(Duration(seconds: 0));
+                        },
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.blue,
                         ),
                       ),
                     )

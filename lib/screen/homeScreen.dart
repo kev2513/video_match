@@ -77,14 +77,7 @@ class _VMScaffoldState extends State<VMScaffold> {
       body: Stack(children: <Widget>[
         (widget.colorfulBackground)
             ? Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment(.75, .75),
-                    colors: [mainColor, Colors.transparent],
-                    tileMode: TileMode.repeated,
-                  ),
-                ),
+                color: Colors.white,
               )
             : Container(),
         widget.body

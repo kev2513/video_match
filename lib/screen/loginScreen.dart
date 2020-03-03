@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/utils/colors.dart';
+import 'package:video_match/utils/ui/button.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -35,35 +36,22 @@ class _LoginScreenState extends State<LoginScreen> {
       colorfulBackground: true,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            Text("Welcome!",
-                style: TextStyle(
-                    fontSize: 60,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold)),
-            Divider(
-              color: Colors.transparent,
-              height: 30,
+            Text(
+              "Welcome",
+              style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
             ),
             CircleAvatar(
               child: Image.asset("assets/app_icon.png"),
               radius: 100,
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.grey[850],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 30),
-              child: FlatButton(
-                color: secondaryColor,
-                child: Text(
-                  "Sign in with Google",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                onPressed: () {
-                  _handleSignIn();
-                },
-              ),
-            )
+            RoundedButton(
+              text: "Sign in with Google",
+              color: secondaryColor,
+              onPressed: () => _handleSignIn(),
+            ),
           ],
         ),
       ),
