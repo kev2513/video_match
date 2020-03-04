@@ -1,9 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:video_match/screen/createProfile.dart';
-import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/utils/colors.dart';
+import 'package:video_match/utils/ui/VMScaffold.dart';
 import 'package:video_match/utils/ui/button.dart';
 import 'package:video_match/server/server.dart';
 
@@ -13,6 +10,20 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _showSigninButton = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (await Server.instance.checkIfSignedIn())
+        Navigator.of(context).pushReplacementNamed("homeScreen");
+      else
+        setState(() {
+          _showSigninButton = true;
+        });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return VMScaffold(
@@ -30,17 +41,23 @@ class _LoginScreenState extends State<LoginScreen> {
               radius: 100,
               backgroundColor: Colors.grey[850],
             ),
-            RoundedButton(
-              text: "Sign in with Google",
-              color: secondaryColor,
-              onPressed: () async {
-                if (await Server.instance.handleSignIn()) {
-                  //TODO check if profile exists
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (BuildContext context) => CreateProfile()));
-                }
-              },
-            ),
+            (_showSigninButton)
+                ? RoundedButton(
+                    text: "Sign in with Google",
+                    color: secondaryColor,
+                    onPressed: () async {
+                      if (await Server.instance.handleSignIn()) {
+                        if (await Server.instance.checkIfProfileCreated() ==
+                            false)
+                          Navigator.of(context)
+                              .pushReplacementNamed("createProfile");
+                        else
+                          Navigator.of(context)
+                              .pushReplacementNamed("homeScreen");
+                      }
+                    },
+                  )
+                : Container(),
           ],
         ),
       ),

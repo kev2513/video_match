@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_match/screen/createProfile.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
-import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 
 String initialRoute;
@@ -11,8 +11,6 @@ String initialRoute;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  // TODO remove black screen while loading
-  initialRoute = (await Server.instance.checkIfSignedIn()) ? "homeScreen" : "/";
   runApp(MyApp());
 }
 
@@ -47,6 +45,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (context) => LoginScreen(),
         'homeScreen': (context) => HomeScreen(),
+        'createProfile': (context) => CreateProfile(),
       },
     );
   }

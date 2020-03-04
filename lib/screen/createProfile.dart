@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/country_states.dart';
 import 'package:video_match/screen/createVideo.dart';
+import 'package:video_match/utils/ui/VMScaffold.dart';
 import 'package:video_match/utils/ui/button.dart';
 
 class CreateProfile extends StatefulWidget {
@@ -359,6 +358,7 @@ class _CreateProfileState extends State<CreateProfile> {
               ? Align(
                   alignment: Alignment(-.9, .95),
                   child: FloatingActionButton(
+                      heroTag: null,
                       child: Icon(
                         Icons.navigate_before,
                         color: secondaryColor,
@@ -415,6 +415,7 @@ class _CreateProfileState extends State<CreateProfile> {
                           }) ||
                   currentPage == 5 && videoCreated)
               ? FloatingActionButton(
+                  heroTag: null,
                   child: Icon(
                     Icons.navigate_next,
                     color: mainColor,

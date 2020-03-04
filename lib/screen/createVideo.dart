@@ -208,6 +208,7 @@ class _CreateVideoState extends State<CreateVideo> {
                   ? Align(
                       alignment: Alignment(.4, .8),
                       child: FloatingActionButton(
+                        heroTag: null,
                         backgroundColor: Colors.white,
                         onPressed: () {
                           setState(() {
@@ -227,6 +228,7 @@ class _CreateVideoState extends State<CreateVideo> {
                   ? Align(
                       alignment: Alignment(-.4, .8),
                       child: FloatingActionButton(
+                        heroTag: null,
                         backgroundColor: Colors.white,
                         onPressed: () {
                           _videoPlayerController.seekTo(Duration(seconds: 0));
@@ -264,6 +266,7 @@ class _CreateVideoState extends State<CreateVideo> {
                   ? Align(
                       alignment: Alignment(0, .9),
                       child: FloatingActionButton(
+                        heroTag: null,
                         child: Icon(
                             (_recordState)
                                 ? Icons.fiber_manual_record

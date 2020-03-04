@@ -14,20 +14,22 @@ class Server {
   Server._internal() {}
 
   Future<bool> checkIfSignedIn() async {
-    if (await handleSignIn()) {
-      DocumentSnapshot ds = await Firestore.instance
-          .collection("user")
-          .document(firebaseUser.uid)
-          .get();
-      if (ds.data.isNotEmpty) return true;
-    }
-    return false;
+    return (await _googleSignIn.isSignedIn());
+  }
+
+  /// Only if signed in
+  Future<bool> checkIfProfileCreated() async {
+    DocumentSnapshot ds = await Firestore.instance
+        .collection("user")
+        .document(firebaseUser.uid)
+        .get();
+    return (ds.data != null);
   }
 
   Future<bool> handleSignIn() async {
     try {
       GoogleSignInAccount googleUser;
-      if (await _googleSignIn.isSignedIn())
+      if (await checkIfSignedIn())
         googleUser = await _googleSignIn.signInSilently();
       else
         googleUser = await _googleSignIn.signIn();

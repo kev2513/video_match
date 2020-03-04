@@ -84,15 +84,20 @@ class _PlayVideoState extends State<PlayVideo> {
       Align(
         alignment: Alignment(.95, -.95),
         child: FloatingActionButton(
+          heroTag: null,
           mini: true,
           backgroundColor: Colors.white,
           onPressed: () {},
-          child: Icon(Icons.report, color: Colors.red,),
+          child: Icon(
+            Icons.report,
+            color: Colors.red,
+          ),
         ),
       ),
       Align(
         alignment: Alignment(-.5, .9),
         child: FloatingActionButton(
+          heroTag: null,
           onPressed: () {},
           backgroundColor: Colors.white,
           child: Icon(
@@ -105,6 +110,7 @@ class _PlayVideoState extends State<PlayVideo> {
       Align(
         alignment: Alignment(.5, .9),
         child: FloatingActionButton(
+          heroTag: null,
           onPressed: () {},
           child: Icon(
             Icons.thumb_up,
