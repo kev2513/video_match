@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:video_match/screen/homeScreen.dart';
+import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/country_states.dart';
 import 'package:video_match/screen/createVideo.dart';
@@ -25,7 +27,7 @@ class _CreateProfileState extends State<CreateProfile> {
       mATec = TextEditingController(),
       maxATec = TextEditingController();
 
-  bool _gender = true;
+  bool gender = true;
   String selectedCountry, selectedState;
   List<String> countries = List<String>();
   List<String> states = List<String>();
@@ -91,14 +93,6 @@ class _CreateProfileState extends State<CreateProfile> {
       return;
     }
 
-    StorageUploadTask uploadTaskVideo = FirebaseStorage()
-        .ref()
-        .child("video.mp4")
-        .putFile(File(await getSelfVideoPath()));
-    StorageUploadTask uploadTaskSelfie = FirebaseStorage()
-        .ref()
-        .child("selfie.jpg")
-        .putFile(File(await getSelfiePath()));
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -123,10 +117,20 @@ class _CreateProfileState extends State<CreateProfile> {
                 ),
               ),
             ));
-    await uploadTaskVideo.onComplete;
-    await uploadTaskSelfie.onComplete;
-    Navigator.of(context).pop();
-    print("uploade done!");
+
+    await Server.instance.createProfile({
+      "name": firstName,
+      "age": userAge,
+      "gender": gender,
+      "state": selectedState,
+      "country": selectedCountry,
+      "image": await File(await getSelfiePath())
+          .readAsString(encoding: Encoding.getByName("LATIN1")),
+      "minAge": minAge,
+      "maxAge": maxAge,
+    }, await getSelfVideoPath());
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil("homeScreen", ModalRoute.withName('/'));
   }
 
   @override
@@ -211,10 +215,10 @@ class _CreateProfileState extends State<CreateProfile> {
                       Theme(
                         data: ThemeData(accentColor: Colors.white),
                         child: Switch(
-                          value: !_gender,
+                          value: !gender,
                           onChanged: (newGender) {
                             setState(() {
-                              _gender = !newGender;
+                              gender = !newGender;
                             });
                           },
                           inactiveTrackColor: mainColor,

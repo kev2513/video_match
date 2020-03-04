@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:video_match/screen/createProfile.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
+import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
+
+String initialRoute;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // TODO remove black screen while loading
+  initialRoute = (await Server.instance.checkIfSignedIn()) ? "homeScreen" : "/";
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,7 +43,11 @@ class MyApp extends StatelessWidget {
               thumbColor: Colors.white),
           floatingActionButtonTheme:
               FloatingActionButtonThemeData(backgroundColor: mainColor)),
-      home: CreateProfile()
+              initialRoute: initialRoute,
+      routes: {
+        '/': (context) => LoginScreen(),
+        'homeScreen': (context) => HomeScreen(),
+      },
     );
   }
 }

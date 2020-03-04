@@ -20,7 +20,7 @@ class _RoundedButtonState extends State<RoundedButton> {
         padding: const EdgeInsets.all(8.0),
         child: Text(
           widget.text,
-          style: TextStyle(fontSize: 30, color: widget.color),
+          style: TextStyle(fontSize: 25, color: widget.color),
         ),
       ),
       onPressed: () {
