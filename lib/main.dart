@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:video_match/screen/createProfile.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
+import 'package:video_match/screen/settingsScreen.dart';
 import 'package:video_match/utils/colors.dart';
 
 String initialRoute;
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
         '/': (context) => LoginScreen(),
         'homeScreen': (context) => HomeScreen(),
         'createProfile': (context) => CreateProfile(),
+        'settings': (context) => SettingsScreen(),
       },
     );
   }

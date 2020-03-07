@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class VMScaffold extends StatefulWidget {
   VMScaffold(
-      {this.body,
+      {this.action,
+      this.body,
       this.bottomNavigationBar,
       this.floatingActionButton,
       this.colorfulBackground = false});
+  final Widget action;
   final Widget body;
   final Widget floatingActionButton;
   final Widget bottomNavigationBar;
@@ -24,6 +26,7 @@ class _VMScaffoldState extends State<VMScaffold> {
           "assets/app_lable.png",
           height: 40,
         ),
+        actions: (widget.action != null) ? <Widget>[widget.action] : null,
       ),
       body: Stack(children: <Widget>[
         (widget.colorfulBackground)
