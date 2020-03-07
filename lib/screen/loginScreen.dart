@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
-import 'package:video_match/utils/ui/button.dart';
+import 'package:video_match/utils/ui/div.dart';
 import 'package:video_match/server/server.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (await Server.instance.checkIfSignedIn())
+      if (await Server.instance.signIn())
         Navigator.of(context).pushReplacementNamed("homeScreen");
       else
         setState(() {
@@ -42,9 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundColor: Colors.grey[850],
             ),
             (_showSigninButton)
-                ? RoundedButton(
+                ? VMButton(
                     text: "Sign in with Google",
-                    color: secondaryColor,
                     onPressed: () async {
                       if (await Server.instance.handleSignIn()) {
                         if (await Server.instance.checkIfProfileCreated() ==
@@ -57,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     },
                   )
-                : Container(),
+                : VMLoadingCircle(),
           ],
         ),
       ),
