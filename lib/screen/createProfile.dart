@@ -7,7 +7,7 @@ import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/country_states.dart';
 import 'package:video_match/screen/createVideo.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
-import 'package:video_match/utils/ui/button.dart';
+import 'package:video_match/utils/ui/div.dart';
 
 class CreateProfile extends StatefulWidget {
   @override
@@ -99,21 +99,10 @@ class _CreateProfileState extends State<CreateProfile> {
               onWillPop: () async => false,
               child: AlertDialog(
                 title: Text(
-                  "Uploading",
+                  "Uploading...",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                content: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    SizedBox(
-                        height: 25,
-                        width: 25,
-                        child: CircularProgressIndicator(
-                          backgroundColor: mainColor,
-                        )),
-                  ],
-                ),
+                content: VMLoadingCircle(),
               ),
             ));
 
@@ -123,8 +112,8 @@ class _CreateProfileState extends State<CreateProfile> {
       "gender": gender,
       "state": selectedState,
       "country": selectedCountry,
-      "image": await File(await getSelfiePath())
-          .readAsString(encoding: Encoding.getByName("LATIN1")),
+      "image":
+          Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
       "minAge": minAge,
       "maxAge": maxAge,
     }, await getSelfVideoPath());
@@ -345,9 +334,8 @@ class _CreateProfileState extends State<CreateProfile> {
               ),
               InnerPageUserData(
                 children: <Widget>[
-                  RoundedButton(
+                  VMButton(
                     text: "Upload Profile",
-                    color: secondaryColor,
                     onPressed: () => _createProfile(),
                   ),
                 ],
