@@ -63,7 +63,6 @@ class _CreateVideoState extends State<CreateVideo> {
           setState(() {
             _cameraGranted = true;
           });
-          _showHintDialog();
         });
       }
     });

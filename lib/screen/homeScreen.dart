@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_match/screen/playVideo.dart';
+import 'package:video_match/screen/otherUserVideo.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -8,16 +8,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  int _currentPage = 0;
   PageController _pageController = PageController();
+  String dropdownValue = 'One';
 
   @override
   Widget build(BuildContext context) {
     return VMScaffold(
+      action: (_currentPage == 1)? PopupMenuButton<int>(
+        onSelected: (itemId) {switch (itemId) {
+          case 1:Navigator.of(context).pushNamed("settings");
+            
+            break;
+          default:
+        }},
+        itemBuilder: (BuildContext context) {
+          return [
+            PopupMenuItem<int>(
+              value: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Edit profile"),
+                  Icon(Icons.edit)
+                ],
+              ),
+            ),
+            PopupMenuItem<int>(
+              value: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Settings"),
+                  Icon(Icons.settings)
+                ],
+              ),
+            )
+          ];
+        },
+      ): null,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
-        children: <Widget>[PlayVideo(), Text("chats")],
+        children: <Widget>[OtherUserVideo(), Text("chats")],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -30,10 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
             title: Text('Chat'),
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: _currentPage,
         onTap: (newSelected) {
           setState(() {
-            _selectedIndex = newSelected;
+            _currentPage = newSelected;
             if (_pageController.page == 0 && newSelected == 1)
               _pageController.nextPage(
                   duration: Duration(milliseconds: 500),
