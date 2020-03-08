@@ -35,13 +35,19 @@ class Server {
         (await checkIfProfileCreated());
   }
 
-  /// Only if signed in
-  Future<bool> checkIfProfileCreated() async {
-    DocumentSnapshot ds = await Firestore.instance
+  Future<Map<String, dynamic>> getOwnProfile() {
+    return Firestore.instance
         .collection("user")
         .document(firebaseUser.uid)
-        .get();
-    return (ds.data != null);
+        .get()
+        .then((data) {
+      return data.data;
+    });
+  }
+
+  /// Only if signed in
+  Future<bool> checkIfProfileCreated() async {
+    return (await getOwnProfile() != null);
   }
 
   Future<bool> handleSignIn() async {
@@ -66,18 +72,19 @@ class Server {
     return true;
   }
 
-  Future<bool> createProfile(
-      Map<String, dynamic> userData, String videoPath) async {
-    print("profile size: " + userData.toString().length.toString());
-    Firestore.instance
+  Future<bool> saveProfile(Map<String, dynamic> userData,
+      {String videoPath}) async {
+    if (videoPath != null) {
+      StorageUploadTask uploadTaskVideo = FirebaseStorage()
+          .ref()
+          .child(firebaseUser.uid)
+          .putFile(File(videoPath));
+      await uploadTaskVideo.onComplete;
+    }
+    await Firestore.instance
         .collection("user")
         .document(firebaseUser.uid)
-        .setData(userData);
-    StorageUploadTask uploadTaskVideo = FirebaseStorage()
-        .ref()
-        .child(firebaseUser.uid)
-        .putFile(File(videoPath));
-    await uploadTaskVideo.onComplete;
+        .setData(userData, merge: true);
     return true;
   }
 
@@ -110,6 +117,7 @@ class Server {
         .document(firebaseUser.uid)
         .delete();
     await FirebaseStorage().ref().child(firebaseUser.uid).delete();
+    await firebaseUser.delete();
     return true;
   }
 }

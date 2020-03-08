@@ -18,6 +18,7 @@ class _CreateProfileState extends State<CreateProfile> {
   PageController _pageController = PageController();
   int currentPage = 0;
   bool nextPageLock = false;
+  bool edit = false;
 
   String firstName = "", userAge = "", minAge = "", maxAge = "";
 
@@ -32,66 +33,17 @@ class _CreateProfileState extends State<CreateProfile> {
   List<String> states = List<String>();
   bool videoCreated = false;
 
-  List<String> statesOfCountrie(String country) {
+  setStatesDropdown(String country) {
     List<String> statesTemp = List<String>();
 
     country_states["countries"].forEach((c) {
       if (c["country"] == country) statesTemp = c["states"];
     });
 
-    return statesTemp;
+    states = statesTemp;
   }
 
   _createProfile() async {
-    String message = "";
-    if (firstName.isEmpty) message += " \n • your name is missing";
-
-    if (userAge.isEmpty)
-      message += " \n • your age is not set";
-    else {
-      if (int.parse(userAge) > 80 || (int.parse(userAge) < 18))
-        message += "\n • you must be between 18 and 80 years old";
-    }
-
-    if (selectedCountry == "None")
-      message += "\n • our country is not selected";
-
-    if (minAge.isEmpty || minAge.isEmpty)
-      message +=
-          " \n • set the min and max age of the user you are looking for";
-    else {
-      if (int.parse(minAge) > 80 || (int.parse(maxAge) > 80))
-        message += "\n • users can max be 80 years old";
-
-      if (int.parse(minAge) < 18 || (int.parse(maxAge) < 18))
-        message += "\n • users must be at least 18 years old";
-
-      if (int.parse(minAge) > int.parse(maxAge))
-        message +=
-            "\n • the min age of the user you are looking for is not higher than the max age";
-    }
-
-    if (message != "") {
-      await showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-                title: Text(
-                  "Sorry",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: Text(message),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text("Close"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  )
-                ],
-              ));
-      return;
-    }
-
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -106,19 +58,58 @@ class _CreateProfileState extends State<CreateProfile> {
               ),
             ));
 
-    await Server.instance.createProfile({
+    await Server.instance.saveProfile({
       "name": firstName,
       "age": userAge,
       "gender": gender,
       "state": selectedState,
       "country": selectedCountry,
-      "image":
-          Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
       "minAge": minAge,
       "maxAge": maxAge,
-    }, await getSelfVideoPath());
+      "image":
+          Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
+    }, videoPath: await getSelfVideoPath());
     Navigator.of(context)
         .pushNamedAndRemoveUntil("homeScreen", ModalRoute.withName('/'));
+  }
+
+  _checkInput() {
+    return (currentPage == 0 && firstName.isNotEmpty && firstName.length > 2 ||
+        currentPage == 1 &&
+            (int.parse(userAge, onError: (_) {
+                      return 100;
+                    }) <=
+                    80 &&
+                (int.parse(userAge, onError: (_) {
+                      return 0;
+                    }) >=
+                    18)) ||
+        currentPage == 2 ||
+        currentPage == 3 && selectedCountry != "None" ||
+        currentPage == 4 &&
+            (int.parse(minAge, onError: (_) {
+                      return 100;
+                    }) <=
+                    80 &&
+                (int.parse(minAge, onError: (_) {
+                      return 0;
+                    }) >=
+                    18)) &&
+            (int.parse(maxAge, onError: (_) {
+                      return 100;
+                    }) <=
+                    80 &&
+                (int.parse(maxAge, onError: (_) {
+                      return 0;
+                    }) >=
+                    18)) &&
+            int.parse(minAge, onError: (_) {
+                  return 0;
+                }) <=
+                int.parse(maxAge, onError: (_) {
+                  return 0;
+                }) ||
+        currentPage == 5 && videoCreated);
   }
 
   @override
@@ -129,7 +120,43 @@ class _CreateProfileState extends State<CreateProfile> {
     country_states["countries"].forEach((c) {
       countries.add(c["country"]);
     });
-    states = statesOfCountrie(selectedCountry);
+    setStatesDropdown(selectedCountry);
+    Server.instance.checkIfProfileCreated().then((profileCreated) {
+      if (profileCreated)
+        Server.instance.getOwnProfile().then((userData) {
+          setState(() {
+            edit = true;
+            firstName = userData["name"];
+            fNTec.text = firstName;
+            userAge = userData["age"];
+            uATec.text = userAge;
+            gender = userData["gender"];
+            selectedCountry = userData["country"];
+            setStatesDropdown(selectedCountry);
+            selectedState = userData["state"];
+            minAge = userData["minAge"];
+            mATec.text = minAge;
+            maxAge = userData["maxAge"];
+            maxATec.text = maxAge;
+          });
+        });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    if (_checkInput()) {
+      Server.instance.saveProfile({
+        "name": firstName,
+        "age": userAge,
+        "gender": gender,
+        "state": selectedState,
+        "country": selectedCountry,
+        "minAge": minAge,
+        "maxAge": maxAge,
+      });
+    }
   }
 
   @override
@@ -160,7 +187,15 @@ class _CreateProfileState extends State<CreateProfile> {
                         });
                       },
                     ),
-                  )
+                  ),
+                  Divider(
+                    color: Colors.transparent,
+                  ),
+                  Text(
+                    "Your name must have at least 3 characters.",
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
               InnerPageUserData(
@@ -228,7 +263,7 @@ class _CreateProfileState extends State<CreateProfile> {
                     onChanged: (String newCountry) {
                       setState(() {
                         selectedCountry = newCountry;
-                        states = statesOfCountrie(newCountry);
+                        setStatesDropdown(newCountry);
                         selectedState = states.first;
                       });
                     },
@@ -331,18 +366,10 @@ class _CreateProfileState extends State<CreateProfile> {
                     videoCreated = false;
                   });
                 },
-              ),
-              InnerPageUserData(
-                children: <Widget>[
-                  VMButton(
-                    text: "Upload Profile",
-                    onPressed: () => _createProfile(),
-                  ),
-                ],
               )
             ],
           ),
-          (currentPage >= 1 && currentPage < 5)
+          (currentPage >= 1 && currentPage < 5 || currentPage == 5 && edit)
               ? Align(
                   alignment: Alignment(-.9, .95),
                   child: FloatingActionButton(
@@ -353,6 +380,7 @@ class _CreateProfileState extends State<CreateProfile> {
                       ),
                       backgroundColor: Colors.white,
                       onPressed: () async {
+                        videoCreated = false;
                         await _pageController.previousPage(
                             duration: Duration(milliseconds: 200),
                             curve: Curves.decelerate);
@@ -365,65 +393,31 @@ class _CreateProfileState extends State<CreateProfile> {
               : Container(),
         ],
       ),
-      floatingActionButton:
-          (currentPage == 0 && firstName.isNotEmpty && firstName.length > 2 ||
-                  currentPage == 1 &&
-                      (int.parse(userAge, onError: (_) {
-                                return 100;
-                              }) <=
-                              80 &&
-                          (int.parse(userAge, onError: (_) {
-                                return 0;
-                              }) >=
-                              18)) ||
-                  currentPage == 2 ||
-                  currentPage == 3 && selectedCountry != "None" ||
-                  currentPage == 4 &&
-                      (int.parse(minAge, onError: (_) {
-                                return 100;
-                              }) <=
-                              80 &&
-                          (int.parse(minAge, onError: (_) {
-                                return 0;
-                              }) >=
-                              18)) &&
-                      (int.parse(maxAge, onError: (_) {
-                                return 100;
-                              }) <=
-                              80 &&
-                          (int.parse(maxAge, onError: (_) {
-                                return 0;
-                              }) >=
-                              18)) &&
-                      int.parse(minAge, onError: (_) {
-                            return 0;
-                          }) <=
-                          int.parse(maxAge, onError: (_) {
-                            return 0;
-                          }) ||
-                  currentPage == 5 && videoCreated)
-              ? FloatingActionButton(
-                  heroTag: null,
-                  child: Icon(
-                    Icons.navigate_next,
-                    color: mainColor,
-                  ),
-                  backgroundColor: Colors.white,
-                  onPressed: () async {
-                    if (!nextPageLock) {
-                      nextPageLock = true;
-                      setState(() {
-                        currentPage = _pageController.page.toInt() + 1;
-                      });
-                      await _pageController.nextPage(
-                          duration: Duration(milliseconds: 200),
-                          curve: Curves.decelerate);
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      nextPageLock = false;
-                    }
-                  },
-                )
-              : null,
+      floatingActionButton: (_checkInput())
+          ? FloatingActionButton(
+              heroTag: null,
+              child: Icon(
+                (currentPage == 5) ? Icons.file_upload : Icons.navigate_next,
+                color: mainColor,
+              ),
+              backgroundColor: Colors.white,
+              onPressed: () async {
+                if (currentPage == 5) {
+                  _createProfile();
+                } else if (!nextPageLock) {
+                  nextPageLock = true;
+                  setState(() {
+                    currentPage = _pageController.page.toInt() + 1;
+                  });
+                  await _pageController.nextPage(
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.decelerate);
+                  FocusScope.of(context).requestFocus(FocusNode());
+                  nextPageLock = false;
+                }
+              },
+            )
+          : null,
     );
   }
 }

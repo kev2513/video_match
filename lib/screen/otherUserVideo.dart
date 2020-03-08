@@ -65,20 +65,29 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                             ),
                           ),
                         ),
-                  Align(
-                      alignment: Alignment(-.8, -.95),
-                      child: Text(
-                        (snapshot.data["name"] + ", " + snapshot.data["age"]),
-                        style: TextStyle(color: Colors.white, fontSize: 40),
-                      )),
-                  Align(
-                      alignment: Alignment(-.8, -.8),
-                      child: Text(
-                        (snapshot.data["state"] +
-                            ", " +
-                            snapshot.data["country"]),
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      )),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Align(
+                        alignment: Alignment(-.75, -.95),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(
+                              (snapshot.data["name"] +
+                                  ", " +
+                                  snapshot.data["age"]),
+                              style: TextStyle(color: Colors.white, fontSize: 40),
+                            ),
+                            Text(
+                              (snapshot.data["state"] +
+                                  ", " +
+                                  snapshot.data["country"]),
+                              style: TextStyle(color: Colors.white, fontSize: 20),
+                            )
+                          ],
+                        )),
+                  ),
                   Align(
                     alignment: Alignment(.99, -.99),
                     child: FloatingActionButton(

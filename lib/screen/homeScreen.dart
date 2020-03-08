@@ -15,38 +15,44 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return VMScaffold(
-      action: (_currentPage == 1)? PopupMenuButton<int>(
-        onSelected: (itemId) {switch (itemId) {
-          case 1:Navigator.of(context).pushNamed("settings");
-            
-            break;
-          default:
-        }},
-        itemBuilder: (BuildContext context) {
-          return [
-            PopupMenuItem<int>(
-              value: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("Edit profile"),
-                  Icon(Icons.edit)
-                ],
-              ),
-            ),
-            PopupMenuItem<int>(
-              value: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("Settings"),
-                  Icon(Icons.settings)
-                ],
-              ),
+      action: (_currentPage == 1)
+          ? PopupMenuButton<int>(
+              onSelected: (itemId) {
+                switch (itemId) {
+                  case 1:
+                    Navigator.of(context).pushNamed("createProfile", arguments: true);
+                    break;
+                  case 2:
+                    Navigator.of(context).pushNamed("settings");
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<int>(
+                    value: 1,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("My profile"),
+                        Icon(Icons.edit)
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<int>(
+                    value: 2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("Settings"),
+                        Icon(Icons.settings)
+                      ],
+                    ),
+                  )
+                ];
+              },
             )
-          ];
-        },
-      ): null,
+          : null,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
