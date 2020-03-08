@@ -66,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           ));
                                   if (textEditingController.text.isNotEmpty)
                                     await Server.instance.sendFeedback(
-                                        textEditingController.text, addUid: true);
+                                        textEditingController.text, ownUid: true);
                                   Future.delayed(Duration(seconds: 1), () {
                                     Navigator.of(context).pop();
                                     Navigator.of(context).pop();

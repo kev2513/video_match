@@ -121,9 +121,24 @@ class Server {
     return true;
   }
 
-  Future<void> sendFeedback(String feedBack, {bool addUid = false}) async {
-    await Firestore.instance.collection("feedback").document().setData((!addUid)
-        ? {"message": feedBack, "date": DateTime.now()}
-        : {"message": feedBack, "date": DateTime.now(), "uid": firebaseUser.uid});
+  Future<void> sendFeedback(String message, {bool ownUid = false}) async {
+    await Firestore.instance.collection("feedback").document().setData((!ownUid)
+        ? {"message": message, "date": DateTime.now()}
+        : {
+            "message": message,
+            "date": DateTime.now(),
+            "uid": firebaseUser.uid
+          });
+  }
+
+  reportUser(String uid) async {
+    int reports = 0;
+    DocumentReference reference =
+        Firestore.instance.collection("report").document(uid);
+
+    if ((await reference.get()).exists)
+      reports = (await reference.get()).data["counter"];
+
+    reference.setData({"counter": reports + 1}, merge: true);
   }
 }

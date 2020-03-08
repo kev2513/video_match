@@ -16,6 +16,7 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
   bool _playing = false;
   Map<String, dynamic> userData;
   bool _loading = false;
+  bool reported = false;
   @override
   void initState() {
     super.initState();
@@ -77,31 +78,84 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                               (snapshot.data["name"] +
                                   ", " +
                                   snapshot.data["age"]),
-                              style: TextStyle(color: Colors.white, fontSize: 40),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 40),
                             ),
                             Text(
                               (snapshot.data["state"] +
                                   ", " +
                                   snapshot.data["country"]),
-                              style: TextStyle(color: Colors.white, fontSize: 20),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
                             )
                           ],
                         )),
                   ),
-                  Align(
-                    alignment: Alignment(.99, -.99),
-                    child: FloatingActionButton(
-                      heroTag: null,
-                      mini: true,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      onPressed: () {},
-                      child: Icon(
-                        Icons.report,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
+                  (!reported)
+                      ? Align(
+                          alignment: Alignment(.99, -.99),
+                          child: FloatingActionButton(
+                            heroTag: null,
+                            mini: true,
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                        title: Text(
+                                          "Are you sure you want to report " +
+                                              snapshot.data["name"] +
+                                              "?",
+                                        ),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: <Widget>[
+                                                FlatButton(
+                                                  onPressed: () async {
+                                                    // TODO: add dislike automaticaly
+                                                    setState(() {
+                                                      reported = true;
+                                                    });
+                                                    Server.instance
+                                                        .reportUser(snapshot.data["uid"]);
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text(
+                                                    "Report",
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                  color: Colors.red,
+                                                ),
+                                                FlatButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text(
+                                                    "Cancle",
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                  color: mainColor,
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ));
+                            },
+                            child: Icon(
+                              Icons.report,
+                              color: Colors.red,
+                            ),
+                          ),
+                        )
+                      : Container(),
                   (!_playing && !_loading)
                       ? Align(
                           alignment: Alignment.center,
