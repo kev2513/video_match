@@ -120,4 +120,11 @@ class Server {
     await firebaseUser.delete();
     return true;
   }
+
+  Future<void> sendFeedback(String feedBack) async {
+    await Firestore.instance
+        .collection("feedback")
+        .document()
+        .setData({"message": feedBack});
+  }
 }

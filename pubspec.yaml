@@ -17,6 +17,7 @@ dependencies:
   firebase_auth: 0.15.4
   google_fonts: 0.3.9
   firebase_ml_vision: 0.9.3
+  url_launcher: 5.4.2
   
   flutter:
     sdk: flutter
