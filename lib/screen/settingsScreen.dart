@@ -30,8 +30,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             VMButton(
               onPressed: () {
-                //TODO: create vm email
-                launch("mailto:questions.focus@gmail.com");
+                TextEditingController textEditingController =
+                    TextEditingController();
+                showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              TextField(
+                                controller: textEditingController,
+                                maxLength: 2000,
+                                maxLines: 5,
+                                minLines: 3,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Please enter your idears'),
+                              ),
+                              FlatButton(
+                                onPressed: () async {
+                                  showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                            onWillPop: () async => false,
+                                            child: AlertDialog(
+                                              title: Text(
+                                                "Thanks for your feedback!",
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              content: VMLoadingCircle(),
+                                            ),
+                                          ));
+                                  if (textEditingController.text.isNotEmpty)
+                                    await Server.instance.sendFeedback(
+                                        textEditingController.text, addUid: true);
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  });
+                                },
+                                child: Text(
+                                  "Send",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                color: mainColor,
+                              ),
+                              Text(
+                                "If we need to answer we write you an email to the adresse you used to sign in with our google account.",
+                                style: TextStyle(fontStyle: FontStyle.italic),
+                              )
+                            ],
+                          ),
+                        ));
               },
               text: "Send feedback",
               color: mainColor,
@@ -60,11 +113,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     hintText: 'Please enter your reason'),
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   FlatButton(
                                     onPressed: () async {
-                                      await Server.instance.sendFeedback(textEditingController.text);
+                                      await Server.instance.sendFeedback(
+                                          textEditingController.text);
                                       await Server.instance.deleteProfile();
                                       exit(0);
                                     },

@@ -121,10 +121,9 @@ class Server {
     return true;
   }
 
-  Future<void> sendFeedback(String feedBack) async {
-    await Firestore.instance
-        .collection("feedback")
-        .document()
-        .setData({"message": feedBack});
+  Future<void> sendFeedback(String feedBack, {bool addUid = false}) async {
+    await Firestore.instance.collection("feedback").document().setData((!addUid)
+        ? {"message": feedBack, "date": DateTime.now()}
+        : {"message": feedBack, "date": DateTime.now(), "uid": firebaseUser.uid});
   }
 }
