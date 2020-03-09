@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:video_match/screen/chatScreen.dart';
 import 'package:video_match/screen/otherUserVideo.dart';
+import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,47 +18,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return VMScaffold(
       action: (_currentPage == 1)
-          ? PopupMenuButton<int>(
-              onSelected: (itemId) {
-                switch (itemId) {
-                  case 1:
-                    Navigator.of(context).pushNamed("createProfile", arguments: true);
-                    break;
-                  case 2:
-                    Navigator.of(context).pushNamed("settings");
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<int>(
-                    value: 1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("My profile"),
-                        Icon(Icons.edit)
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<int>(
-                    value: 2,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Settings"),
-                        Icon(Icons.settings)
-                      ],
-                    ),
-                  )
-                ];
+          ? FloatingActionButton(
+              backgroundColor: Colors.white,
+              child: Icon(
+                Icons.settings,
+                color: mainColor,
+              ),
+              mini: true,
+              onPressed: () {
+                Navigator.of(context).pushNamed("settings");
               },
             )
           : null,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
-        children: <Widget>[OtherUserVideo(), Text("chats")],
+        children: <Widget>[OtherUserVideo(), ChatsList()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:video_match/utils/colors.dart';
 
 class VMButton extends StatefulWidget {
-  VMButton({this.text, this.onPressed, this.color = secondaryColor, this.size = 25});
+  VMButton(
+      {this.text, this.onPressed, this.color = secondaryColor, this.size = 25});
   final String text;
   final Function onPressed;
   final Color color;
@@ -48,4 +49,20 @@ class VMLoadingCircle extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget loadingDialog(BuildContext context) {
+  showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: AlertDialog(
+              title: Text(
+                "Uploading...",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: VMLoadingCircle(),
+            ),
+          ));
 }

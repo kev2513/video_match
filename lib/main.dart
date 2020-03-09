@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_match/screen/createProfile.dart';
+import 'package:video_match/screen/createVideo.dart';
+import 'package:video_match/screen/editVideo.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
 import 'package:video_match/screen/settingsScreen.dart';
@@ -47,6 +49,7 @@ class _MyAppState extends State<MyApp> {
         '/': (context) => LoginScreen(),
         'homeScreen': (context) => HomeScreen(),
         'createProfile': (context) => CreateProfile(),
+        'editVideo': (context) => EditVideo(),
         'settings': (context) => SettingsScreen(),
       },
     );

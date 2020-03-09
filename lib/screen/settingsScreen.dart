@@ -21,6 +21,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            VMButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed("editVideo");
+              },
+              text: "Change video",
+            ),
+            Divider(
+              height: 40,
+            ),
             Text(
               "Do you have feedback?",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -66,7 +75,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           ));
                                   if (textEditingController.text.isNotEmpty)
                                     await Server.instance.sendFeedback(
-                                        textEditingController.text, ownUid: true);
+                                        textEditingController.text,
+                                        ownUid: true);
                                   Future.delayed(Duration(seconds: 1), () {
                                     Navigator.of(context).pop();
                                     Navigator.of(context).pop();
@@ -118,9 +128,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 children: <Widget>[
                                   FlatButton(
                                     onPressed: () async {
-                                      if(textEditingController.text.isNotEmpty)
-                                      await Server.instance.sendFeedback(
-                                          textEditingController.text);
+                                      if (textEditingController.text.isNotEmpty)
+                                        await Server.instance.sendFeedback(
+                                            textEditingController.text);
                                       await Server.instance.deleteProfile();
                                       exit(0);
                                     },

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,7 +18,6 @@ class _CreateProfileState extends State<CreateProfile> {
   PageController _pageController = PageController();
   int currentPage = 0;
   bool nextPageLock = false;
-  bool edit = false;
 
   String firstName = "", userAge = "", minAge = "", maxAge = "";
 
@@ -33,21 +31,9 @@ class _CreateProfileState extends State<CreateProfile> {
   bool videoCreated = false;
 
   _createProfile() async {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (_) => WillPopScope(
-              onWillPop: () async => false,
-              child: AlertDialog(
-                title: Text(
-                  "Uploading...",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: VMLoadingCircle(),
-              ),
-            ));
+    loadingDialog(context);
 
-    await Server.instance.saveProfile({
+    await Server.instance.saveProfile(userData: {
       "name": firstName,
       "age": userAge,
       "gender": gender,
@@ -57,6 +43,8 @@ class _CreateProfileState extends State<CreateProfile> {
       "city": city,
       "minAge": minAge,
       "maxAge": maxAge,
+      "lastOnline": DateTime.now(),
+      "seenUserDate": DateTime.fromMillisecondsSinceEpoch(0),
       "image":
           Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
       "creationDate": DateTime.now()
@@ -102,50 +90,6 @@ class _CreateProfileState extends State<CreateProfile> {
                   return 0;
                 }) ||
         currentPage == 5 && videoCreated);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Server.instance.checkIfProfileCreated().then((profileCreated) {
-      if (profileCreated)
-        Server.instance.getOwnProfile().then((userData) {
-          setState(() {
-            edit = true;
-            firstName = userData["name"];
-            fNTec.text = firstName;
-            userAge = userData["age"];
-            uATec.text = userAge;
-            gender = userData["gender"];
-            isoCountryCode = userData["isoCountryCode"];
-            administrativeArea = userData["administrativeArea"];
-            subAdministrativeArea = userData["subAdministrativeArea"];
-            city = userData["city"];
-            minAge = userData["minAge"];
-            mATec.text = minAge;
-            maxAge = userData["maxAge"];
-            maxATec.text = maxAge;
-          });
-        });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    if (_checkInput()) {
-      Server.instance.saveProfile({
-        "name": firstName,
-        "age": userAge,
-        "gender": gender,
-        "isoCountryCode": isoCountryCode,
-        "administrativeArea": administrativeArea,
-        "subAdministrativeArea": subAdministrativeArea,
-        "city": city,
-        "minAge": minAge,
-        "maxAge": maxAge,
-      });
-    }
   }
 
   @override
@@ -360,7 +304,7 @@ class _CreateProfileState extends State<CreateProfile> {
               )
             ],
           ),
-          (currentPage >= 1 && currentPage < 5 || currentPage == 5 && edit)
+          (currentPage >= 1 && currentPage < 5)
               ? Align(
                   alignment: Alignment(-.9, .95),
                   child: FloatingActionButton(
