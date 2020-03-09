@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
-import 'package:video_match/utils/country_states.dart';
 import 'package:video_match/screen/createVideo.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
 import 'package:video_match/utils/ui/div.dart';
@@ -28,20 +29,8 @@ class _CreateProfileState extends State<CreateProfile> {
       maxATec = TextEditingController();
 
   bool gender = true;
-  String selectedCountry, selectedState;
-  List<String> countries = List<String>();
-  List<String> states = List<String>();
+  String isoCountryCode, administrativeArea, subAdministrativeArea, city;
   bool videoCreated = false;
-
-  setStatesDropdown(String country) {
-    List<String> statesTemp = List<String>();
-
-    country_states["countries"].forEach((c) {
-      if (c["country"] == country) statesTemp = c["states"];
-    });
-
-    states = statesTemp;
-  }
 
   _createProfile() async {
     showDialog(
@@ -62,12 +51,15 @@ class _CreateProfileState extends State<CreateProfile> {
       "name": firstName,
       "age": userAge,
       "gender": gender,
-      "state": selectedState,
-      "country": selectedCountry,
+      "isoCountryCode": isoCountryCode,
+      "administrativeArea": administrativeArea,
+      "subAdministrativeArea": subAdministrativeArea,
+      "city": city,
       "minAge": minAge,
       "maxAge": maxAge,
       "image":
           Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
+      "creationDate": DateTime.now()
     }, videoPath: await getSelfVideoPath());
     Navigator.of(context)
         .pushNamedAndRemoveUntil("homeScreen", ModalRoute.withName('/'));
@@ -85,7 +77,7 @@ class _CreateProfileState extends State<CreateProfile> {
                     }) >=
                     18)) ||
         currentPage == 2 ||
-        currentPage == 3 && selectedCountry != "None" ||
+        currentPage == 3 && isoCountryCode != null ||
         currentPage == 4 &&
             (int.parse(minAge, onError: (_) {
                       return 100;
@@ -115,12 +107,6 @@ class _CreateProfileState extends State<CreateProfile> {
   @override
   void initState() {
     super.initState();
-    selectedCountry = "None";
-    selectedState = "-";
-    country_states["countries"].forEach((c) {
-      countries.add(c["country"]);
-    });
-    setStatesDropdown(selectedCountry);
     Server.instance.checkIfProfileCreated().then((profileCreated) {
       if (profileCreated)
         Server.instance.getOwnProfile().then((userData) {
@@ -131,9 +117,10 @@ class _CreateProfileState extends State<CreateProfile> {
             userAge = userData["age"];
             uATec.text = userAge;
             gender = userData["gender"];
-            selectedCountry = userData["country"];
-            setStatesDropdown(selectedCountry);
-            selectedState = userData["state"];
+            isoCountryCode = userData["isoCountryCode"];
+            administrativeArea = userData["administrativeArea"];
+            subAdministrativeArea = userData["subAdministrativeArea"];
+            city = userData["city"];
             minAge = userData["minAge"];
             mATec.text = minAge;
             maxAge = userData["maxAge"];
@@ -151,8 +138,10 @@ class _CreateProfileState extends State<CreateProfile> {
         "name": firstName,
         "age": userAge,
         "gender": gender,
-        "state": selectedState,
-        "country": selectedCountry,
+        "isoCountryCode": isoCountryCode,
+        "administrativeArea": administrativeArea,
+        "subAdministrativeArea": subAdministrativeArea,
+        "city": city,
         "minAge": minAge,
         "maxAge": maxAge,
       });
@@ -255,48 +244,55 @@ class _CreateProfileState extends State<CreateProfile> {
               ),
               InnerPageUserData(
                 children: <Widget>[
-                  Text(
-                    "Please select your country and staate:",
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Please allow access to your GPS",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Divider(),
+                      FlatButton(
+                        child: Text(
+                          (isoCountryCode == null) ? "Allow" : "✓",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        color: Colors.black,
+                        onPressed: () async {
+                          Position position = await Geolocator()
+                              .getCurrentPosition(
+                                  desiredAccuracy: LocationAccuracy.high);
+                          Placemark placemark = (await Geolocator()
+                                  .placemarkFromPosition(position))
+                              .first;
+                          setState(() {
+                            isoCountryCode = placemark.isoCountryCode;
+                            administrativeArea = placemark.administrativeArea;
+                            subAdministrativeArea =
+                                placemark.subAdministrativeArea;
+                            city = placemark.locality;
+                          });
+                        },
+                      ),
+                      Divider(
+                        color: Colors.transparent,
+                      ),
+                      (isoCountryCode != null)
+                          ? Text("You got located at: " +
+                              isoCountryCode +
+                              ", " +
+                              administrativeArea +
+                              ", " +
+                              subAdministrativeArea +
+                              ", " +
+                              city)
+                          : Container()
+                    ],
                   ),
-                  DropdownButton<String>(
-                    value: selectedCountry,
-                    onChanged: (String newCountry) {
-                      setState(() {
-                        selectedCountry = newCountry;
-                        setStatesDropdown(newCountry);
-                        selectedState = states.first;
-                      });
-                    },
-                    items:
-                        countries.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  DropdownButton<String>(
-                    value: selectedState,
-                    onChanged: (String newState) {
-                      setState(() {
-                        selectedState = newState;
-                      });
-                    },
-                    items: states.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  Divider(
-                    color: Colors.transparent,
-                  ),
-                  Text(
-                    "We respect the data privacy of our users that's why we wont use GPS.",
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                    textAlign: TextAlign.center,
-                  )
                 ],
               ),
               InnerPageUserData(
@@ -330,11 +326,6 @@ class _CreateProfileState extends State<CreateProfile> {
                             controller: maxATec,
                             keyboardType: TextInputType.number,
                             maxLength: 2,
-                            onSubmitted: (_) {
-                              _pageController.nextPage(
-                                  duration: Duration(milliseconds: 200),
-                                  curve: Curves.decelerate);
-                            },
                             textAlign: TextAlign.center,
                             onChanged: (input) {
                               setState(() {

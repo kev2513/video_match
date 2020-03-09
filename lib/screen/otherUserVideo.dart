@@ -82,9 +82,7 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                                   TextStyle(color: Colors.white, fontSize: 40),
                             ),
                             Text(
-                              (snapshot.data["state"] +
-                                  ", " +
-                                  snapshot.data["country"]),
+                              (snapshot.data["city"]),
                               style:
                                   TextStyle(color: Colors.white, fontSize: 20),
                             )
@@ -121,8 +119,8 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                                                     setState(() {
                                                       reported = true;
                                                     });
-                                                    Server.instance
-                                                        .reportUser(snapshot.data["uid"]);
+                                                    Server.instance.reportUser(
+                                                        snapshot.data["uid"]);
                                                     Navigator.of(context).pop();
                                                   },
                                                   child: Text(
@@ -205,7 +203,9 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                     alignment: Alignment(.5, .9),
                     child: FloatingActionButton(
                       heroTag: null,
-                      onPressed: () {},
+                      onPressed: () async {
+                        
+                      },
                       backgroundColor: Colors.transparent,
                       child: Icon(
                         Icons.thumb_up,

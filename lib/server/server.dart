@@ -141,4 +141,11 @@ class Server {
 
     reference.setData({"counter": reports + 1}, merge: true);
   }
+
+  likeUser(String uid) {
+    Firestore.instance
+        .collection("user")
+        .document(firebaseUser.uid)
+        .updateData({uid: true});
+  }
 }

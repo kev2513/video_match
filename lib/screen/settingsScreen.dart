@@ -118,6 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 children: <Widget>[
                                   FlatButton(
                                     onPressed: () async {
+                                      if(textEditingController.text.isNotEmpty)
                                       await Server.instance.sendFeedback(
                                           textEditingController.text);
                                       await Server.instance.deleteProfile();
