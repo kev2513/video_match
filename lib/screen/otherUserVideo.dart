@@ -190,7 +190,9 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                     alignment: Alignment(-.5, .9),
                     child: FloatingActionButton(
                       heroTag: null,
-                      onPressed: () {},
+                      onPressed: () {
+                        Server.instance.rateUser(snapshot.data, false);
+                        setState(() {});},
                       backgroundColor: Colors.transparent,
                       child: Icon(
                         Icons.navigate_next,
@@ -204,7 +206,8 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                     child: FloatingActionButton(
                       heroTag: null,
                       onPressed: () async {
-                        
+                        Server.instance.rateUser(snapshot.data, true);
+                        setState(() {});
                       },
                       backgroundColor: Colors.transparent,
                       child: Icon(

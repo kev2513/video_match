@@ -26,6 +26,8 @@ class Server {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser firebaseUser;
+  Map<String, dynamic> ownUserData = Map<String, dynamic>();
+
   Server._internal() {}
 
   // Return true if signed in and profile is created
@@ -33,21 +35,6 @@ class Server {
     return (await _googleSignIn.isSignedIn()) &&
         (await handleSignIn()) &&
         (await checkIfProfileCreated());
-  }
-
-  Future<Map<String, dynamic>> getOwnProfile() {
-    return Firestore.instance
-        .collection("user")
-        .document(firebaseUser.uid)
-        .get()
-        .then((data) {
-      return data.data;
-    });
-  }
-
-  /// Only if signed in
-  Future<bool> checkIfProfileCreated() async {
-    return (await getOwnProfile() != null);
   }
 
   Future<bool> handleSignIn() async {
@@ -66,14 +53,46 @@ class Server {
       );
 
       firebaseUser = (await _auth.signInWithCredential(credential)).user;
+      await _updateOwnUserData();
+      await _updateLastOnline();
     } catch (_) {
       return false;
     }
     return true;
   }
 
-  Future<bool> saveProfile(Map<String, dynamic> userData,
-      {String videoPath}) async {
+  _updateOwnUserData() async {
+    ownUserData = (await Firestore.instance
+            .collection("user")
+            .document(firebaseUser.uid)
+            .get())
+        .data;
+  }
+
+  _updateLastOnline() async {
+    await Firestore.instance
+        .collection("user")
+        .document(firebaseUser.uid)
+        .updateData({"lastOnline": DateTime.now()});
+  }
+
+  Future<Map<String, dynamic>> getOwnProfile() {
+    return Firestore.instance
+        .collection("user")
+        .document(firebaseUser.uid)
+        .get()
+        .then((data) {
+      return data.data;
+    });
+  }
+
+  /// Only if signed in
+  Future<bool> checkIfProfileCreated() async {
+    return (await getOwnProfile() != null);
+  }
+
+  Future<bool> saveProfile(
+      {Map<String, dynamic> userData, String videoPath}) async {
     if (videoPath != null) {
       StorageUploadTask uploadTaskVideo = FirebaseStorage()
           .ref()
@@ -81,20 +100,28 @@ class Server {
           .putFile(File(videoPath));
       await uploadTaskVideo.onComplete;
     }
-    await Firestore.instance
-        .collection("user")
-        .document(firebaseUser.uid)
-        .setData(userData, merge: true);
+    if (userData != null)
+      await Firestore.instance
+          .collection("user")
+          .document(firebaseUser.uid)
+          .setData(userData, merge: true);
     return true;
   }
 
   Future<Map<String, dynamic>> recomendUser() async {
-    // For test return own user
+    await _updateOwnUserData();
     Map<String, dynamic> data;
-    DocumentSnapshot ds = await Firestore.instance
-        .collection("user")
-        .document(firebaseUser.uid)
-        .get();
+    DocumentSnapshot ds = (await Firestore.instance
+            .collection("user")
+            .limit(1)
+            .where("creationDate", isGreaterThan: ownUserData["seenUserDate"])
+            //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
+            //.where("gender", isEqualTo: !ownUserData["gender"])
+            //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
+            //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
+            .getDocuments())
+        .documents
+        .first;
     data = ds.data;
     data["uid"] = ds.documentID;
     return data;
@@ -142,10 +169,27 @@ class Server {
     reference.setData({"counter": reports + 1}, merge: true);
   }
 
-  likeUser(String uid) {
+  rateUser(Map<String, dynamic> otherUserProfile, bool like) {
     Firestore.instance
         .collection("user")
         .document(firebaseUser.uid)
-        .updateData({uid: true});
+        .updateData({
+      otherUserProfile["uid"]: like,
+      "seenUserDate": otherUserProfile["creationDate"]
+    });
+  }
+
+  Stream<QuerySnapshot> likesProfileList() {
+    return Firestore.instance
+        .collection("user")
+        .where(firebaseUser.uid, isEqualTo: true)
+        .snapshots();
+  }
+
+  checkUserLikedBack(String uid, bool condition) {
+    if (ownUserData[uid] == condition || !condition && ownUserData[uid] == null)
+      return true;
+    else
+      return false;
   }
 }

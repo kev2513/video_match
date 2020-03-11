@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_match/screen/chatScreen.dart';
+import 'package:video_match/screen/chatListScreen.dart';
 import 'package:video_match/screen/otherUserVideo.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
