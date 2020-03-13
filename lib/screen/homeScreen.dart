@@ -19,7 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return VMScaffold(
       action: (_currentPage == 1)
           ? FloatingActionButton(
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
               child: Icon(
                 Icons.settings,
                 color: mainColor,

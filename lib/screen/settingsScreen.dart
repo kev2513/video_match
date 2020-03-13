@@ -25,14 +25,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 Navigator.of(context).pushNamed("editVideo");
               },
-              text: "Change video",
+              text: "Change your video",
+              size: 20,
             ),
             Divider(
               height: 40,
-            ),
-            Text(
-              "Do you have feedback?",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Divider(
               color: Colors.transparent,
@@ -98,6 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               text: "Send feedback",
               color: mainColor,
+              size: 20,
             ),
             Divider(
               height: 60,

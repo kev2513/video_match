@@ -34,10 +34,11 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
           accentColor: secondaryColor,
           primaryColor: mainColor,
+          canvasColor: Colors.white,
           textTheme: GoogleFonts.montserratTextTheme(
             Theme.of(context).textTheme,
           ),
-          appBarTheme: AppBarTheme(color: Colors.white),
+          appBarTheme: AppBarTheme(color: Colors.white, elevation: 0),
           sliderTheme: SliderThemeData(
               activeTrackColor: mainColor,
               inactiveTrackColor: secondaryColor,
