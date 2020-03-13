@@ -192,4 +192,12 @@ class Server {
     else
       return false;
   }
+
+  Stream<QuerySnapshot> chatStream(String uidOtherUser){
+    return Firestore.instance
+        .collection("chats")
+        .where(firebaseUser.uid, isEqualTo: true)
+        .where(uidOtherUser, isEqualTo: true)
+        .snapshots();
+  }
 }
