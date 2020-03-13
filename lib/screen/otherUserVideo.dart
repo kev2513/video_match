@@ -28,199 +28,221 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
     if (_videoPlayerController != null) _videoPlayerController.dispose();
   }
 
+  _pauseVideo() async {
+    if (_videoPlayerController != null && _playing) {
+      setState(() {
+        _playing = false;
+      });
+      await _videoPlayerController.pause();
+      await _videoPlayerController.seekTo(Duration(seconds: 0));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: Server.instance.recomendUser(),
-      builder:
-          (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
-        return (snapshot.hasData)
-            ? GestureDetector(
-                onTap: () async {
-                  if (_videoPlayerController != null && _playing) {
-                    setState(() {
-                      _playing = false;
-                    });
-                    await _videoPlayerController.pause();
-                    await _videoPlayerController.seekTo(Duration(seconds: 0));
-                  }
-                },
-                child: Stack(children: <Widget>[
-                  (!_playing)
-                      ? Image.memory(
-                          Base64Codec().decode(snapshot.data["image"]),
-                          fit: BoxFit.cover,
-                          height: double.infinity,
-                          width: double.infinity,
-                          alignment: Alignment.center,
-                        )
-                      : Transform.scale(
-                          scale: _videoPlayerController.value.aspectRatio /
-                              (MediaQuery.of(context).size.width /
-                                  MediaQuery.of(context).size.height),
-                          child: Center(
-                            child: AspectRatio(
-                              aspectRatio:
-                                  _videoPlayerController.value.aspectRatio,
-                              child: VideoPlayer(_videoPlayerController),
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.all(Radius.circular(25)),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: Server.instance.recomendUser(),
+          builder: (BuildContext context,
+              AsyncSnapshot<Map<String, dynamic>> snapshot) {
+            return (snapshot.hasData)
+                ? GestureDetector(
+                    onTap: () => _pauseVideo(),
+                    child: Stack(children: <Widget>[
+                      (!_playing)
+                          ? Image.memory(
+                              Base64Codec().decode(snapshot.data["image"]),
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                              width: double.infinity,
+                              alignment: Alignment.center,
+                            )
+                          : Transform.scale(
+                              scale: _videoPlayerController.value.aspectRatio /
+                                  (MediaQuery.of(context).size.width /
+                                      MediaQuery.of(context).size.height),
+                              child: Center(
+                                child: AspectRatio(
+                                  aspectRatio:
+                                      _videoPlayerController.value.aspectRatio,
+                                  child: VideoPlayer(_videoPlayerController),
+                                ),
+                              ),
                             ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                            alignment: Alignment(-.75, -.95),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  (snapshot.data["name"] +
+                                      ", " +
+                                      snapshot.data["age"]),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 40),
+                                ),
+                                Text(
+                                  (snapshot.data["city"]),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20),
+                                )
+                              ],
+                            )),
+                      ),
+                      (!reported)
+                          ? Align(
+                              alignment: Alignment(.99, -.99),
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                mini: true,
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                onPressed: () {
+                                  showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                            title: Text(
+                                              "Are you sure you want to report " +
+                                                  snapshot.data["name"] +
+                                                  "?",
+                                            ),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: <Widget>[
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: <Widget>[
+                                                    FlatButton(
+                                                      onPressed: () async {
+                                                        // TODO: add dislike automaticaly
+                                                        setState(() {
+                                                          reported = true;
+                                                        });
+                                                        Server.instance
+                                                            .reportUser(snapshot
+                                                                .data["uid"]);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: Text(
+                                                        "Report",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                      color: Colors.red,
+                                                    ),
+                                                    FlatButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: Text(
+                                                        "Cancle",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                      color: mainColor,
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ));
+                                },
+                                child: Icon(
+                                  Icons.report,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            )
+                          : Container(),
+                      (!_playing && !_loading)
+                          ? Align(
+                              alignment: Alignment.center,
+                              child: IconButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _loading = true;
+                                  });
+                                  if (_videoPlayerController == null) {
+                                    String videoUrl = await Server.instance
+                                        .getVideoUrl(snapshot.data["uid"]);
+                                    _videoPlayerController =
+                                        VideoPlayerController.network(videoUrl);
+
+                                    await _videoPlayerController.initialize();
+                                    await _videoPlayerController
+                                        .setLooping(true);
+                                  }
+                                  _videoPlayerController.play();
+                                  setState(() {
+                                    _playing = !_playing;
+                                    _loading = false;
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.white,
+                                ),
+                                iconSize: 60,
+                              ),
+                            )
+                          : Container(),
+                      (_loading)
+                          ? Center(child: VMLoadingCircle())
+                          : Container(),
+                      Align(
+                        alignment: Alignment(-.5, .9),
+                        child: FloatingActionButton(
+                          heroTag: null,
+                          onPressed: () {
+                            Server.instance.rateUser(snapshot.data, false);
+                            _pauseVideo();
+                            _videoPlayerController = null;
+                            setState(() {});
+                          },
+                          backgroundColor: Colors.transparent,
+                          child: Icon(
+                            Icons.navigate_next,
+                            size: 50,
+                            color: secondaryColor,
                           ),
                         ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                        alignment: Alignment(-.75, -.95),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text(
-                              (snapshot.data["name"] +
-                                  ", " +
-                                  snapshot.data["age"]),
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 40),
-                            ),
-                            Text(
-                              (snapshot.data["city"]),
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                            )
-                          ],
-                        )),
-                  ),
-                  (!reported)
-                      ? Align(
-                          alignment: Alignment(.99, -.99),
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            mini: true,
-                            backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                        title: Text(
-                                          "Are you sure you want to report " +
-                                              snapshot.data["name"] +
-                                              "?",
-                                        ),
-                                        content: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: <Widget>[
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: <Widget>[
-                                                FlatButton(
-                                                  onPressed: () async {
-                                                    // TODO: add dislike automaticaly
-                                                    setState(() {
-                                                      reported = true;
-                                                    });
-                                                    Server.instance.reportUser(
-                                                        snapshot.data["uid"]);
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    "Report",
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
-                                                  color: Colors.red,
-                                                ),
-                                                FlatButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    "Cancle",
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
-                                                  color: mainColor,
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ));
-                            },
-                            child: Icon(
-                              Icons.report,
-                              color: Colors.red,
-                            ),
-                          ),
-                        )
-                      : Container(),
-                  (!_playing && !_loading)
-                      ? Align(
-                          alignment: Alignment.center,
-                          child: IconButton(
-                            onPressed: () async {
-                              setState(() {
-                                _loading = true;
-                              });
-                              if (_videoPlayerController == null) {
-                                String videoUrl = await Server.instance
-                                    .getVideoUrl(snapshot.data["uid"]);
-                                _videoPlayerController =
-                                    VideoPlayerController.network(videoUrl);
-
-                                await _videoPlayerController.initialize();
-                                await _videoPlayerController.setLooping(true);
-                              }
-                              _videoPlayerController.play();
-                              setState(() {
-                                _playing = !_playing;
-                                _loading = false;
-                              });
-                            },
-                            icon: Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                            ),
-                            iconSize: 60,
-                          ),
-                        )
-                      : Container(),
-                  (_loading) ? Center(child: VMLoadingCircle()) : Container(),
-                  Align(
-                    alignment: Alignment(-.5, .9),
-                    child: FloatingActionButton(
-                      heroTag: null,
-                      onPressed: () {
-                        Server.instance.rateUser(snapshot.data, false);
-                        setState(() {});},
-                      backgroundColor: Colors.transparent,
-                      child: Icon(
-                        Icons.navigate_next,
-                        size: 50,
-                        color: secondaryColor,
                       ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment(.5, .9),
-                    child: FloatingActionButton(
-                      heroTag: null,
-                      onPressed: () async {
-                        Server.instance.rateUser(snapshot.data, true);
-                        setState(() {});
-                      },
-                      backgroundColor: Colors.transparent,
-                      child: Icon(
-                        Icons.thumb_up,
-                        size: 30,
-                        color: mainColor,
-                      ),
-                    ),
+                      Align(
+                        alignment: Alignment(.5, .9),
+                        child: FloatingActionButton(
+                          heroTag: null,
+                          onPressed: () async {
+                            Server.instance.rateUser(snapshot.data, true);
+                            _pauseVideo();
+                            _videoPlayerController = null;
+                            setState(() {});
+                          },
+                          backgroundColor: Colors.transparent,
+                          child: Icon(
+                            Icons.thumb_up,
+                            size: 30,
+                            color: mainColor,
+                          ),
+                        ),
+                      )
+                    ]),
                   )
-                ]),
-              )
-            : VMLoadingCircle();
-      },
+                : VMLoadingCircle();
+          },
+        ),
+      ),
     );
   }
 }
