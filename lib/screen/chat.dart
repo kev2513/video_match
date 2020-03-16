@@ -19,6 +19,8 @@ class _ChatState extends State<Chat> {
   ScrollController scrollController = ScrollController();
 
   sendMessage() {
+    Server.instance
+        .sendChatMessage(widget.uidOtherUser, textEditingController.text);
     textEditingController.text = "";
   }
 
@@ -38,8 +40,11 @@ class _ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
+    QuerySnapshot data;
     return VMScaffold(
-      body: Column(
+        body: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
         children: <Widget>[
           Expanded(
             child: ListView(
@@ -52,57 +57,49 @@ class _ChatState extends State<Chat> {
                     if (snapshot.connectionState == ConnectionState.waiting)
                       return VMLoadingCircle();
 
-                    QuerySnapshot data = snapshot.data;
+                    data = snapshot.data;
                     List<Widget> messages = List<Widget>();
                     List<dynamic> dataList = List<dynamic>();
-                    if (data.documents.isEmpty) {
-                      return Message_Card(
-                          message:
-                              "Write something nice and make the first steep 😇");
-                    } else {
+                    if (data.documents.isNotEmpty) {
                       dataList = data.documents.first.data["messages"];
                     }
 
                     dataList.forEach((block) {
                       var map = Map<String, dynamic>.from(block);
-                      double paddingSize = 100.0;
-                      EdgeInsetsGeometry padding = (true)
-                          ? EdgeInsets.only(left: paddingSize)
-                          : EdgeInsets.only(right: paddingSize);
-                      messages.add(Padding(
-                        padding: padding,
-                        child: Align(
-                          child: Message_Card(message: map["m"].toString()),
-                          alignment: (true)
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                        ),
+                      bool ownMessage = block[
+                          Server.instance.firebaseUser.uid.substring(0, 6)];
+                      messages.add(MessageCard(
+                        message: map["m"].toString(),
+                        ownMessage: ownMessage,
                       ));
                     });
 
                     return Column(
-                      children: messages,
+                      children: (messages.isNotEmpty)
+                          ? messages
+                          : [
+                              Text(
+                                  "Write something nice and make the first steep 😇")
+                            ],
                     );
                   },
                 ),
               ],
             ),
           ),
+          Divider(),
           Row(
             children: <Widget>[
               Flexible(
                 child: TextField(
-                  onEditingComplete: () {
-                    sendMessage();
-                  },
+                  onEditingComplete: () => sendMessage(),
                   controller: textEditingController,
-                  maxLength: 400,
                 ),
               ),
-              FlatButton(
-                onPressed: () {
-                  sendMessage();
-                },
+              FloatingActionButton(
+                mini: true,
+                heroTag: null,
+                onPressed: () => sendMessage(),
                 child: Icon(
                   Icons.send,
                 ),
@@ -111,18 +108,21 @@ class _ChatState extends State<Chat> {
           )
         ],
       ),
-    );
+    ));
   }
 }
 
-class Message_Card extends StatefulWidget {
-  const Message_Card({this.message});
+class MessageCard extends StatefulWidget {
+  const MessageCard({this.message, this.ownMessage});
+  @required
   final String message;
+  @required
+  final bool ownMessage;
   @override
-  _Message_CardState createState() => _Message_CardState();
+  _MessageCardState createState() => _MessageCardState();
 }
 
-class _Message_CardState extends State<Message_Card> {
+class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
     int intOfFirstChar = widget.message.codeUnitAt(0);
@@ -131,22 +131,34 @@ class _Message_CardState extends State<Message_Card> {
         intOfFirstChar <= 55360 &&
         widget.message.length == 2) // range of symbols (tested)
       singleEmoji = true;
-    return GestureDetector(
-      onLongPress: () {
-        Clipboard.setData(ClipboardData(text: widget.message));
-        final snackBar = SnackBar(
-          content: Text(
-            "Copied to clipboard",
-            textAlign: TextAlign.center,
+    return Padding(
+      padding: (widget.ownMessage)
+          ? EdgeInsets.only(left: 100)
+          : EdgeInsets.only(right: 100),
+      child: Align(
+        alignment:
+            (widget.ownMessage) ? Alignment.centerRight : Alignment.centerLeft,
+        child: GestureDetector(
+          onLongPress: () {
+            Clipboard.setData(ClipboardData(text: widget.message));
+            final snackBar = SnackBar(
+              content: Text(
+                "Copied to clipboard",
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: mainColor,
+            );
+            Scaffold.of(context).showSnackBar(snackBar);
+          },
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                widget.message,
+                style: TextStyle(fontSize: (singleEmoji) ? 50.0 : 14.0),
+              ),
+            ),
           ),
-          backgroundColor: mainColor,
-        );
-        Scaffold.of(context).showSnackBar(snackBar);
-      },
-      child: Card(
-        child: Text(
-          widget.message,
-          style: TextStyle(fontSize: (singleEmoji) ? 50.0 : 14.0),
         ),
       ),
     );

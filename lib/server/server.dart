@@ -13,10 +13,12 @@ import 'package:google_sign_in/google_sign_in.dart';
   "gender": gender,
   "state": selectedState,
   "country": selectedCountry,
-  "image": await File(await getSelfiePath())
-      .readAsString(encoding: Encoding.getByName("LATIN1")),
-  "minAge": minAge,
   "maxAge": maxAge,
+  "lastOnline": DateTime.now(),
+  "seenUserDate": DateTime.fromMillisecondsSinceEpoch(0),
+  "image":
+      Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
+  "creationDate": DateTime.now()
 }
 */
 
@@ -114,7 +116,8 @@ class Server {
     DocumentSnapshot ds = (await Firestore.instance
             .collection("user")
             .limit(1)
-            .where("creationDate", isGreaterThan: ownUserData["seenUserDate"])
+            .where("creationDate", isLessThan: ownUserData["seenUserDate"])
+            .orderBy("creationDate", descending: true)
             //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
             //.where("gender", isEqualTo: !ownUserData["gender"])
             //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
@@ -169,14 +172,21 @@ class Server {
     reference.setData({"counter": reports + 1}, merge: true);
   }
 
-  rateUser(Map<String, dynamic> otherUserProfile, bool like) {
-    Firestore.instance
-        .collection("user")
-        .document(firebaseUser.uid)
-        .updateData({
-      otherUserProfile["uid"]: like,
-      "seenUserDate": otherUserProfile["creationDate"]
-    });
+  rateUser(String otherUserUid, bool like,
+      {Timestamp otherUserProfileCreationDate}) {
+    if (otherUserProfileCreationDate != null)
+      Firestore.instance
+          .collection("user")
+          .document(firebaseUser.uid)
+          .updateData({
+        otherUserUid: like,
+        "seenUserDate": otherUserProfileCreationDate
+      });
+    else
+      Firestore.instance
+          .collection("user")
+          .document(firebaseUser.uid)
+          .updateData({otherUserUid: like});
   }
 
   Stream<QuerySnapshot> likesProfileList() {
@@ -186,18 +196,49 @@ class Server {
         .snapshots();
   }
 
-  checkUserLikedBack(String uid, bool condition) {
+  checkOwnUserLikedBack(String uid, bool condition) {
     if (ownUserData[uid] == condition || !condition && ownUserData[uid] == null)
       return true;
     else
       return false;
   }
 
-  Stream<QuerySnapshot> chatStream(String uidOtherUser){
+  Stream<QuerySnapshot> chatStream(String uidOtherUser) {
     return Firestore.instance
         .collection("chats")
         .where(firebaseUser.uid, isEqualTo: true)
         .where(uidOtherUser, isEqualTo: true)
         .snapshots();
+  }
+
+  sendChatMessage(String uidOtherUser, String message) async {
+    if (message.isEmpty || message.length > 2000) return;
+
+    List<DocumentSnapshot> documentSnapshots = (await Firestore.instance
+            .collection("chats")
+            .where(firebaseUser.uid, isEqualTo: true)
+            .where(uidOtherUser, isEqualTo: true)
+            .getDocuments())
+        .documents;
+    if (documentSnapshots.isEmpty) {
+      Firestore.instance.collection("chats").document().setData({
+        firebaseUser.uid: true,
+        uidOtherUser: true,
+        "messages": [
+          {firebaseUser.uid.substring(0, 6): true, "m": message}
+        ]
+      });
+    } else {
+      List<dynamic> messagesList = documentSnapshots.first.data["messages"];
+      messagesList.add({firebaseUser.uid.substring(0, 6): true, "m": message});
+      Firestore.instance
+          .collection("chats")
+          .document(documentSnapshots.first.documentID)
+          .updateData({
+        firebaseUser.uid: true,
+        uidOtherUser: true,
+        "messages": messagesList,
+      });
+    }
   }
 }

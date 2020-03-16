@@ -26,6 +26,7 @@ class _VMScaffoldState extends State<VMScaffold> {
           "assets/app_lable.png",
           height: 40,
         ),
+        centerTitle: true,
         actions: (widget.action != null) ? <Widget>[widget.action] : null,
       ),
       body: Stack(children: <Widget>[

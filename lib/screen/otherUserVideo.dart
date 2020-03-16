@@ -7,6 +7,8 @@ import 'package:video_match/utils/ui/div.dart';
 import 'package:video_player/video_player.dart';
 
 class OtherUserVideo extends StatefulWidget {
+  OtherUserVideo({this.data});
+  final Map<String, dynamic> data;
   @override
   _OtherUserVideoState createState() => _OtherUserVideoState();
 }
@@ -16,7 +18,6 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
   bool _playing = false;
   Map<String, dynamic> userData;
   bool _loading = false;
-  bool reported = false;
   @override
   void initState() {
     super.initState();
@@ -38,6 +39,15 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
     }
   }
 
+  _nextUser() {
+    if (widget.data == null) {
+      _pauseVideo();
+      _videoPlayerController = null;
+      setState(() {});
+    } else
+      Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -45,7 +55,8 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(25)),
         child: FutureBuilder<Map<String, dynamic>>(
-          future: Server.instance.recomendUser(),
+          initialData: (widget.data != null) ? widget.data : null,
+          future: (widget.data == null) ? Server.instance.recomendUser() : null,
           builder: (BuildContext context,
               AsyncSnapshot<Map<String, dynamic>> snapshot) {
             return (snapshot.hasData)
@@ -95,77 +106,74 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                               ],
                             )),
                       ),
-                      (!reported)
-                          ? Align(
-                              alignment: Alignment(.99, -.99),
-                              child: FloatingActionButton(
-                                heroTag: null,
-                                mini: true,
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                                onPressed: () {
-                                  showDialog(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                            title: Text(
-                                              "Are you sure you want to report " +
-                                                  snapshot.data["name"] +
-                                                  "?",
-                                            ),
-                                            content: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: <Widget>[
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceEvenly,
-                                                  children: <Widget>[
-                                                    FlatButton(
-                                                      onPressed: () async {
-                                                        // TODO: add dislike automaticaly
-                                                        setState(() {
-                                                          reported = true;
-                                                        });
-                                                        Server.instance
-                                                            .reportUser(snapshot
-                                                                .data["uid"]);
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text(
-                                                        "Report",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
-                                                      ),
-                                                      color: Colors.red,
-                                                    ),
-                                                    FlatButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text(
-                                                        "Cancle",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
-                                                      ),
-                                                      color: mainColor,
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            ),
-                                          ));
-                                },
-                                child: Icon(
-                                  Icons.report,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            )
-                          : Container(),
+                      Align(
+                        alignment: Alignment(.99, -.99),
+                        child: FloatingActionButton(
+                          heroTag: null,
+                          mini: true,
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                      title: Text(
+                                        "Are you sure you want to report " +
+                                            snapshot.data["name"] +
+                                            "?",
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: <Widget>[
+                                              FlatButton(
+                                                onPressed: () async {
+                                                  Server.instance.rateUser(
+                                                      snapshot.data["uid"],
+                                                      false,
+                                                      otherUserProfileCreationDate:
+                                                          (widget.data == null)
+                                                              ? snapshot.data[
+                                                                  "creationDate"]
+                                                              : null);
+                                                  _nextUser();
+                                                  Server.instance.reportUser(
+                                                      snapshot.data["uid"]);
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text(
+                                                  "Report",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                                color: Colors.red,
+                                              ),
+                                              FlatButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text(
+                                                  "Cancle",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                                color: mainColor,
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ));
+                          },
+                          child: Icon(
+                            Icons.report,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
                       (!_playing && !_loading)
                           ? Align(
                               alignment: Alignment.center,
@@ -206,10 +214,13 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                         child: FloatingActionButton(
                           heroTag: null,
                           onPressed: () {
-                            Server.instance.rateUser(snapshot.data, false);
-                            _pauseVideo();
-                            _videoPlayerController = null;
-                            setState(() {});
+                            Server.instance.rateUser(
+                                snapshot.data["uid"], false,
+                                otherUserProfileCreationDate:
+                                    (widget.data == null)
+                                        ? snapshot.data["creationDate"]
+                                        : null);
+                            _nextUser();
                           },
                           backgroundColor: Colors.transparent,
                           child: Icon(
@@ -224,10 +235,12 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                         child: FloatingActionButton(
                           heroTag: null,
                           onPressed: () async {
-                            Server.instance.rateUser(snapshot.data, true);
-                            _pauseVideo();
-                            _videoPlayerController = null;
-                            setState(() {});
+                            Server.instance.rateUser(snapshot.data["uid"], true,
+                                otherUserProfileCreationDate:
+                                    (widget.data == null)
+                                        ? snapshot.data["creationDate"]
+                                        : null);
+                            _nextUser();
                           },
                           backgroundColor: Colors.transparent,
                           child: Icon(

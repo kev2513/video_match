@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:video_match/screen/chat.dart';
+import 'package:video_match/screen/otherUserScreen.dart';
 import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/ui/div.dart';
 
@@ -15,7 +16,7 @@ class _ChatsListState extends State<ChatsList> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: StreamBuilder(
         stream: Server.instance.likesProfileList(),
         builder: (BuildContext context, snapshot) {
@@ -27,34 +28,50 @@ class _ChatsListState extends State<ChatsList> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text("People which liked you:", style: TextStyle(fontWeight: FontWeight.bold),),
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: querySnapshot.documents.length,
-                    itemBuilder: (context, index) {
-                      if (Server.instance.checkUserLikedBack(
-                          querySnapshot.documents[index].documentID, false))
-                        return UserImageCircle(
-                            querySnapshot.documents[index].data);
-                      else
-                        return Container();
-                    },
+                Text(
+                  "People which liked you:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: querySnapshot.documents.length,
+                      itemBuilder: (context, index) {
+                        if (Server.instance.checkOwnUserLikedBack(
+                            querySnapshot.documents[index].documentID, false)) {
+                          Map<String, dynamic> data =
+                              querySnapshot.documents[index].data;
+                          data["uid"] =
+                              querySnapshot.documents[index].documentID;
+                          return UserImageCircle(data);
+                        } else
+                          return Container();
+                      },
+                    ),
                   ),
                 ),
-                Text("Chats:", style: TextStyle(fontWeight: FontWeight.bold),),
+                Text(
+                  "Chats:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Flexible(
-                  child: ListView.builder(
-                    itemCount: querySnapshot.documents.length,
-                    itemBuilder: (context, index) {
-                      if (Server.instance.checkUserLikedBack(
-                          querySnapshot.documents[index].documentID, true))
-                        return UserChatCard(querySnapshot.documents[index].data,
-                            querySnapshot.documents[index].documentID);
-                      else
-                        return Container();
-                    },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: ListView.builder(
+                      itemCount: querySnapshot.documents.length,
+                      itemBuilder: (context, index) {
+                        if (Server.instance.checkOwnUserLikedBack(
+                            querySnapshot.documents[index].documentID, true))
+                          return UserChatCard(
+                              querySnapshot.documents[index].data,
+                              querySnapshot.documents[index].documentID);
+                        else
+                          return Container();
+                      },
+                    ),
                   ),
                 )
               ],
@@ -69,55 +86,125 @@ class _ChatsListState extends State<ChatsList> {
 
 class UserImageCircle extends StatelessWidget {
   UserImageCircle(this.data, {this.mini = false});
-  Map<String, dynamic> data = Map<String, dynamic>();
-  bool mini;
+  final Map<String, dynamic> data;
+  final bool mini;
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(90)),
-        child: Image.memory(
-          Base64Codec().decode(data["image"]),
-          fit: BoxFit.cover,
-          height: (!mini) ? 100 : 50,
-          width: (!mini) ? 100 : 50,
-          alignment: Alignment.center,
+      child: GestureDetector(
+        onTap: () {
+          if (!mini)
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OtherUserScreen(data)),
+            );
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(90)),
+          child: Image.memory(
+            Base64Codec().decode(data["image"]),
+            fit: BoxFit.cover,
+            height: (!mini) ? 100 : 50,
+            width: (!mini) ? 100 : 50,
+            alignment: Alignment.center,
+          ),
         ),
       ),
     );
   }
 }
 
-class UserChatCard extends StatelessWidget {
+class UserChatCard extends StatefulWidget {
   UserChatCard(this.data, this.uidOtherUser);
-  Map<String, dynamic> data = Map<String, dynamic>();
-  String uidOtherUser;
+  final Map<String, dynamic> data;
+  final String uidOtherUser;
+
+  @override
+  _UserChatCardState createState() => _UserChatCardState();
+}
+
+class _UserChatCardState extends State<UserChatCard> {
+  bool deleted = false;
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Chat(data, uidOtherUser)),
-        );
-      },
-      child: Card(
-        child: Row(
-          children: <Widget>[
-            UserImageCircle(
-              data,
-              mini: true,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Text(
-                data["name"],
+    return (!deleted)
+        ? GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Chat(widget.data, widget.uidOtherUser)),
+              );
+            },
+            onLongPress: () {
+              showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                        title: Text(
+                          "Are you sure?",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text("Do you want to delete the chat with " +
+                                widget.data["name"] +
+                                "?"),
+                            Divider(
+                              color: Colors.transparent,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                FlatButton(
+                                  color: Colors.red,
+                                  child: Text(
+                                    "Delete",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () {
+                                    Server.instance
+                                        .rateUser(widget.uidOtherUser, false);
+                                    setState(() {
+                                      deleted = true;
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text(
+                                    "Cancle",
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ));
+            },
+            child: Card(
+              child: Row(
+                children: <Widget>[
+                  UserImageCircle(
+                    widget.data,
+                    mini: true,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Text(
+                      widget.data["name"],
+                    ),
+                  )
+                ],
               ),
-            )
-          ],
-        ),
-      ),
-    );
+            ),
+          )
+        : Container();
   }
 }
