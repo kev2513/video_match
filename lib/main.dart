@@ -1,20 +1,37 @@
+import 'dart:isolate';
+
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_match/screen/createProfile.dart';
-import 'package:video_match/screen/createVideo.dart';
 import 'package:video_match/screen/editVideo.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
 import 'package:video_match/screen/settingsScreen.dart';
+import 'package:video_match/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 
-String initialRoute;
+void printHello() {
+  print("HELLO FROM BACKGROUND");
+  try {
+    Server.instance.signIn().then((signedIn) {
+      Server.instance.likesProfileList().listen((data) {
+        print("LIKES CHANGED!");
+      });
+    });
+  } catch (e) {
+    print(e.toString());
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await AndroidAlarmManager.initialize();
   runApp(MyApp());
+  await AndroidAlarmManager.oneShot(Duration(seconds: 1), 0, printHello,
+      rescheduleOnReboot: true);
 }
 
 class MyApp extends StatefulWidget {
@@ -27,6 +44,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,7 +63,6 @@ class _MyAppState extends State<MyApp> {
               thumbColor: Colors.white),
           floatingActionButtonTheme:
               FloatingActionButtonThemeData(backgroundColor: mainColor)),
-              initialRoute: initialRoute,
       routes: {
         '/': (context) => LoginScreen(),
         'homeScreen': (context) => HomeScreen(),
