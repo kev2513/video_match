@@ -44,7 +44,8 @@ class _CreateProfileState extends State<CreateProfile> {
       "minAge": minAge,
       "maxAge": maxAge,
       "lastOnline": DateTime.now(),
-      "seenUserDate": DateTime.fromMillisecondsSinceEpoch(0),
+      "seenUserDateOldest": DateTime.now(),
+      "seenUserDateYoungest": DateTime.now(),
       "image":
           Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
       "creationDate": DateTime.now()

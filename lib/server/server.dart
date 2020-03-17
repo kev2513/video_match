@@ -15,7 +15,8 @@ import 'package:google_sign_in/google_sign_in.dart';
   "country": selectedCountry,
   "maxAge": maxAge,
   "lastOnline": DateTime.now(),
-  "seenUserDate": DateTime.fromMillisecondsSinceEpoch(0),
+  "seenUserDateOldest": DateTime.now(),
+  "seenUserDateYoungest": DateTime.now(),
   "image":
       Base64Codec().encode(await File(await getSelfiePath()).readAsBytes()),
   "creationDate": DateTime.now()
@@ -113,20 +114,34 @@ class Server {
   Future<Map<String, dynamic>> recomendUser() async {
     await _updateOwnUserData();
     Map<String, dynamic> data;
-    DocumentSnapshot ds = (await Firestore.instance
+    List<DocumentSnapshot> ds;
+    ds = (await Firestore.instance
             .collection("user")
             .limit(1)
-            .where("creationDate", isLessThan: ownUserData["seenUserDate"])
-            .orderBy("creationDate", descending: true)
+            .where("creationDate",
+                isGreaterThan: ownUserData["seenUserDateYoungest"])
+            .orderBy("creationDate", descending: false)
             //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
             //.where("gender", isEqualTo: !ownUserData["gender"])
             //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
             //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
             .getDocuments())
-        .documents
-        .first;
-    data = ds.data;
-    data["uid"] = ds.documentID;
+        .documents;
+    if (ds.length == 0)
+      ds = (await Firestore.instance
+              .collection("user")
+              .limit(1)
+              .where("creationDate",
+                  isLessThan: ownUserData["seenUserDateOldest"])
+              .orderBy("creationDate", descending: true)
+              //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
+              //.where("gender", isEqualTo: !ownUserData["gender"])
+              //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
+              //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
+              .getDocuments())
+          .documents;
+    data = ds.first.data;
+    data["uid"] = ds.first.documentID;
     return data;
   }
 
@@ -180,7 +195,10 @@ class Server {
           .document(firebaseUser.uid)
           .updateData({
         otherUserUid: like,
-        "seenUserDate": otherUserProfileCreationDate
+        (otherUserProfileCreationDate.millisecondsSinceEpoch <
+                ownUserData["seenUserDateOldest"].millisecondsSinceEpoch)
+            ? "seenUserDateOldest"
+            : "seenUserDateYoungest": otherUserProfileCreationDate,
       });
     else
       Firestore.instance

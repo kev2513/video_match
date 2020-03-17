@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:video_match/screen/chat.dart';
 import 'package:video_match/screen/otherUserScreen.dart';
@@ -20,64 +19,58 @@ class _ChatsListState extends State<ChatsList> {
       child: StreamBuilder(
         stream: Server.instance.likesProfileList(),
         builder: (BuildContext context, snapshot) {
-          QuerySnapshot querySnapshot = snapshot.data;
           if (snapshot.hasError) return Text('Error: ${snapshot.error}');
           if (snapshot.connectionState == ConnectionState.waiting)
             return VMLoadingCircle();
-          if (snapshot.connectionState == ConnectionState.active) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  "People which liked you:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: querySnapshot.documents.length,
-                      itemBuilder: (context, index) {
-                        if (Server.instance.checkOwnUserLikedBack(
-                            querySnapshot.documents[index].documentID, false)) {
-                          Map<String, dynamic> data =
-                              querySnapshot.documents[index].data;
-                          data["uid"] =
-                              querySnapshot.documents[index].documentID;
-                          return UserImageCircle(data);
-                        } else
-                          return Container();
-                      },
-                    ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                "People which liked you:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: snapshot.data.documents.length,
+                    itemBuilder: (context, index) {
+                      if (Server.instance.checkOwnUserLikedBack(
+                          snapshot.data.documents[index].documentID, false)) {
+                        Map<String, dynamic> data =
+                            snapshot.data.documents[index].data;
+                        data["uid"] = snapshot.data.documents[index].documentID;
+                        return UserImageCircle(data);
+                      } else
+                        return Container();
+                    },
                   ),
                 ),
-                Text(
-                  "Chats:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: ListView.builder(
-                      itemCount: querySnapshot.documents.length,
-                      itemBuilder: (context, index) {
-                        if (Server.instance.checkOwnUserLikedBack(
-                            querySnapshot.documents[index].documentID, true))
-                          return UserChatCard(
-                              querySnapshot.documents[index].data,
-                              querySnapshot.documents[index].documentID);
-                        else
-                          return Container();
-                      },
-                    ),
+              ),
+              Text(
+                "Chats:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ListView.builder(
+                    itemCount: snapshot.data.documents.length,
+                    itemBuilder: (context, index) {
+                      if (Server.instance.checkOwnUserLikedBack(
+                          snapshot.data.documents[index].documentID, true))
+                        return UserChatCard(snapshot.data.documents[index].data,
+                            snapshot.data.documents[index].documentID);
+                      else
+                        return Container();
+                    },
                   ),
-                )
-              ],
-            );
-          }
-          return Container();
+                ),
+              )
+            ],
+          );
         },
       ),
     );
