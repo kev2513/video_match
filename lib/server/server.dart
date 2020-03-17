@@ -230,6 +230,7 @@ class Server {
   }
 
   sendChatMessage(String uidOtherUser, String message) async {
+    message = message.trim();
     if (message.isEmpty || message.length > 2000) return;
 
     List<DocumentSnapshot> documentSnapshots = (await Firestore.instance
@@ -244,7 +245,8 @@ class Server {
         uidOtherUser: true,
         "messages": [
           {firebaseUser.uid.substring(0, 6): true, "m": message}
-        ]
+        ],
+        "lastMessage" : DateTime.now()
       });
     } else {
       List<dynamic> messagesList = documentSnapshots.first.data["messages"];
@@ -256,6 +258,7 @@ class Server {
         firebaseUser.uid: true,
         uidOtherUser: true,
         "messages": messagesList,
+        "lastMessage" : DateTime.now()
       });
     }
   }

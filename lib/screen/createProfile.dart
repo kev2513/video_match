@@ -286,8 +286,8 @@ class _CreateProfileState extends State<CreateProfile> {
                     color: Colors.transparent,
                   ),
                   Text(
-                    "The age must be between 18 - 80 years",
-                    style: TextStyle(fontStyle: FontStyle.italic),
+                    "This can not be changed afterwards.",
+                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.red),
                   )
                 ],
               ),

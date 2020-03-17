@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:video_match/screen/chat.dart';
 import 'package:video_match/screen/otherUserScreen.dart';
 import 'package:video_match/server/server.dart';
+import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/ui/div.dart';
 
 class ChatsList extends StatefulWidget {
@@ -119,6 +120,20 @@ class UserChatCard extends StatefulWidget {
 
 class _UserChatCardState extends State<UserChatCard> {
   bool deleted = false;
+  String chatData;
+
+  @override
+  void initState() {
+    super.initState();
+    Server.instance.chatStream(widget.uidOtherUser).listen((data) {
+      setState(() {
+        if (data.documents.length == 0) return;
+        List<dynamic> dataList = data.documents.first.data["messages"];
+        Map<dynamic, dynamic> dataMap = dataList.last as Map<dynamic, dynamic>;
+        chatData = dataMap.values.toList().last.toString();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,10 +203,24 @@ class _UserChatCardState extends State<UserChatCard> {
                     widget.data,
                     mini: true,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Text(
-                      widget.data["name"],
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: (chatData != null)
+                          ? Text(
+                              chatData,
+                              textAlign: TextAlign.end,
+                              softWrap: false,
+                              overflow: TextOverflow.fade,
+                            )
+                          : Text(
+                              "MATCH!",
+                              textAlign: TextAlign.center,
+                              softWrap: false,
+                              overflow: TextOverflow.fade,
+                              style: TextStyle(color: mainColor),
+                            ),
                     ),
                   )
                 ],
