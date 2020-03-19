@@ -1,5 +1,3 @@
-import 'dart:isolate';
-
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,29 +7,16 @@ import 'package:video_match/screen/editVideo.dart';
 import 'package:video_match/screen/homeScreen.dart';
 import 'package:video_match/screen/loginScreen.dart';
 import 'package:video_match/screen/settingsScreen.dart';
-import 'package:video_match/server/server.dart';
+import 'package:video_match/utils/background/worker.dart';
 import 'package:video_match/utils/colors.dart';
-
-void printHello() {
-  print("HELLO FROM BACKGROUND");
-  try {
-    Server.instance.signIn().then((signedIn) {
-      Server.instance.likesProfileList().listen((data) {
-        print("LIKES CHANGED!");
-      });
-    });
-  } catch (e) {
-    print(e.toString());
-  }
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await AndroidAlarmManager.initialize();
   runApp(MyApp());
-  await AndroidAlarmManager.oneShot(Duration(seconds: 1), 0, printHello,
-      rescheduleOnReboot: true);
+  await AndroidAlarmManager.oneShot(Duration(seconds: 1), 0, worker,
+      rescheduleOnReboot: true, wakeup: true, allowWhileIdle: true);
 }
 
 class MyApp extends StatefulWidget {

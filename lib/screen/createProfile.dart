@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:video_match/server/server.dart';
+import 'package:video_match/utils/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/screen/createVideo.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';

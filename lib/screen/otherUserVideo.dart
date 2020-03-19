@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:video_match/server/server.dart';
+import 'package:video_match/utils/server/server.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/ui/div.dart';
 import 'package:video_player/video_player.dart';
