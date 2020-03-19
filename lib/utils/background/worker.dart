@@ -49,8 +49,8 @@ Future<void> worker() async {
 chatMessageStream(DocumentSnapshot documentLikedUser) {
   bool chatInit = false;
   Server.instance.chatStream(documentLikedUser.documentID).listen((dataChat) {
-    if (dataChat.documents.first.data["messages"].last.keys.first !=
-            Server.instance.firebaseUser.uid.substring(0, 6) &&
+    if (!(dataChat.documents.first.data["messages"]
+            .last[Server.instance.firebaseUser.uid.substring(0, 6)] ??= false) &&
         chatInit) {
       showNotification(documentLikedUser.data["name"],
           dataChat.documents.first.data["messages"].last["m"].toString());
