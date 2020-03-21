@@ -15,8 +15,13 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await AndroidAlarmManager.initialize();
   runApp(MyApp());
-  await AndroidAlarmManager.oneShot(Duration(seconds: 1), 0, worker,
-      rescheduleOnReboot: true, wakeup: true, allowWhileIdle: true);
+  AndroidAlarmManager.periodic(
+    Duration(minutes: 1),
+    0,
+    workerOnceCaller,
+    rescheduleOnReboot: true,
+    wakeup: true,
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -25,11 +30,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:video_match/utils/background/worker.dart';
 import 'package:video_match/utils/colors.dart';
 import 'package:video_match/utils/server/server.dart';
 import 'package:video_match/utils/ui/VMScaffold.dart';
@@ -17,6 +20,9 @@ class Chat extends StatefulWidget {
 class _ChatState extends State<Chat> {
   TextEditingController textEditingController = TextEditingController();
   ScrollController scrollController = ScrollController();
+  Timer notificationCancleTimer;
+
+  get prefs => null;
 
   sendMessage() {
     Server.instance
@@ -36,6 +42,15 @@ class _ChatState extends State<Chat> {
           duration: const Duration(milliseconds: 300),
         );
     });
+    notificationCancleTimer = Timer.periodic(Duration(milliseconds: 100), (_) {
+      flutterLocalNotificationsPlugin.cancelAll();
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    notificationCancleTimer.cancel();
   }
 
   @override
