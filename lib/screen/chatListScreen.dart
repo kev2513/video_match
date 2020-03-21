@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:video_match/screen/chat.dart';
 import 'package:video_match/screen/otherUserScreen.dart';
@@ -120,20 +122,6 @@ class UserChatCard extends StatefulWidget {
 
 class _UserChatCardState extends State<UserChatCard> {
   bool deleted = false;
-  String chatData;
-
-  @override
-  void initState() {
-    super.initState();
-    Server.instance.chatStream(widget.uidOtherUser).listen((data) {
-      setState(() {
-        if (data.documents.length == 0) return;
-        List<dynamic> dataList = data.documents.first.data["messages"];
-        Map<dynamic, dynamic> dataMap = dataList.last as Map<dynamic, dynamic>;
-        chatData = dataMap.values.toList().last.toString();
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,22 +194,30 @@ class _UserChatCardState extends State<UserChatCard> {
                   Flexible(
                     fit: FlexFit.loose,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: (chatData != null)
-                          ? Text(
-                              chatData,
-                              textAlign: TextAlign.end,
-                              softWrap: false,
-                              overflow: TextOverflow.fade,
-                            )
-                          : Text(
-                              "MATCH!",
-                              textAlign: TextAlign.center,
-                              softWrap: false,
-                              overflow: TextOverflow.fade,
-                              style: TextStyle(color: mainColor),
-                            ),
-                    ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: StreamBuilder(
+                            stream:
+                                Server.instance.chatStream(widget.uidOtherUser),
+                            builder: (context,
+                                AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.connectionState !=
+                                  ConnectionState.active)
+                                return VMLoadingCircle();
+                              return (snapshot.data.documents.length > 0)
+                                  ? Text(
+                                      snapshot.data.documents.first
+                                          .data["messages"].last["m"]
+                                          .toString(),
+                                      textAlign: TextAlign.end,
+                                      softWrap: false,
+                                      overflow: TextOverflow.fade,
+                                    )
+                                  : Text("MATCH!",
+                                      textAlign: TextAlign.end,
+                                      softWrap: false,
+                                      overflow: TextOverflow.fade,
+                                      style: TextStyle(color: mainColor));
+                            })),
                   )
                 ],
               ),
