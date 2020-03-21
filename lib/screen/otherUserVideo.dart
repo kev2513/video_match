@@ -252,7 +252,30 @@ class _OtherUserVideoState extends State<OtherUserVideo> {
                       )
                     ]),
                   )
-                : VMLoadingCircle();
+                : Container(
+                    color: Colors.grey[100],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Image.asset(
+                          "assets/owl.png",
+                          height: 150,
+                          width: 150,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            "Sorry but currently we cant recommend you any user fitting your requirements.\n\n"
+                            + "We are a growing young app trying to help you to find genuine people. "
+                            + "Please checkout our app from time to time and you will some find someone.\n\n"
+                            + "Thank you for your patience :)",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      ],
+                    ),
+                  );
           },
         ),
       ),

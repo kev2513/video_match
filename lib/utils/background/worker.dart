@@ -26,6 +26,7 @@ Future<void> workerOnceCaller() async {
 }
 
 Future<void> worker() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
   List<String> usersLiked = List<String>();
   bool init = false;
 
@@ -33,13 +34,14 @@ Future<void> worker() async {
     initNotifications();
     Server.instance.signIn().then((signedIn) {
       if (signedIn) {
-        Server.instance.likesProfileList().listen((dataLikedUser) async {
+        Server.instance.likesProfileList().listen((dataLikedUsers) async {
           if (init) {
-            dataLikedUser.documents.forEach((documentLikedUser) async {
+            dataLikedUsers.documents.forEach((documentLikedUser) async {
               if (!usersLiked.contains(documentLikedUser.documentID)) {
                 bool likedBack = Server.instance
                     .checkOwnUserLikedBack(documentLikedUser.documentID, true);
                 usersLiked.add(documentLikedUser.documentID);
+                prefs.setStringList("usersLiked", usersLiked);
                 if (likedBack) chatMessageStream(documentLikedUser);
                 showNotification(likedBack ? "Match!" : "New like!",
                     "with " + documentLikedUser.data["name"]);
@@ -47,10 +49,18 @@ Future<void> worker() async {
             });
           } else {
             init = true;
-            dataLikedUser.documents.forEach((documentLikedUser) {
-              usersLiked.add(documentLikedUser.documentID);
-              if (Server.instance
-                  .checkOwnUserLikedBack(documentLikedUser.documentID, true)) {
+            if (prefs.getStringList("usersLiked") != null)
+              usersLiked.addAll(prefs.getStringList("usersLiked"));
+            dataLikedUsers.documents.forEach((documentLikedUser) {
+              bool likedBack = Server.instance
+                  .checkOwnUserLikedBack(documentLikedUser.documentID, true);
+              if (!usersLiked.contains(documentLikedUser.documentID)) {
+                showNotification(likedBack ? "Match!" : "New like!",
+                    "with " + documentLikedUser.data["name"]);
+                usersLiked.add(documentLikedUser.documentID);
+                prefs.setStringList("usersLiked", usersLiked);
+              }
+              if (likedBack) {
                 chatMessageStream(documentLikedUser);
               }
             });
@@ -64,16 +74,18 @@ Future<void> worker() async {
 }
 
 chatMessageStream(DocumentSnapshot documentLikedUser) {
-  bool chatInit = false;
+  bool init = false;
   Server.instance.chatStream(documentLikedUser.documentID).listen((dataChat) {
-    if (!(dataChat.documents.first.data["messages"]
-                .last[Server.instance.firebaseUser.uid.substring(0, 6)] ??=
-            false) &&
-        chatInit) {
-      showNotification(documentLikedUser.data["name"],
-          dataChat.documents.first.data["messages"].last["m"].toString());
-    } else
-      chatInit = true;
+    if (dataChat.documents.length > 0) {
+      if (!(dataChat.documents.first.data["messages"]
+                  .last[Server.instance.firebaseUser.uid.substring(0, 6)] ??=
+              false) &&
+          init) {
+        showNotification(documentLikedUser.data["name"],
+            dataChat.documents.first.data["messages"].last["m"].toString());
+      } else
+        init = true;
+    }
   });
 }
 
