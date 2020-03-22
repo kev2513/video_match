@@ -73,18 +73,36 @@ Future<void> worker() async {
   }
 }
 
-chatMessageStream(DocumentSnapshot documentLikedUser) {
+chatMessageStream(DocumentSnapshot documentLikedUser) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
   bool init = false;
+  List<String> chatLastMessages = List<String>();
   Server.instance.chatStream(documentLikedUser.documentID).listen((dataChat) {
+    _safeAndSendNotification() {
+      chatLastMessages.add(
+          dataChat.documents.first.data["messages"].last.toString() +
+              dataChat.documents.first.data["lastMessage"].toString());
+      prefs.setStringList("chatLastMessage", chatLastMessages);
+      showNotification(documentLikedUser.data["name"],
+          dataChat.documents.first.data["messages"].last["m"].toString());
+    }
+
     if (dataChat.documents.length > 0) {
       if (!(dataChat.documents.first.data["messages"]
                   .last[Server.instance.firebaseUser.uid.substring(0, 6)] ??=
               false) &&
           init) {
-        showNotification(documentLikedUser.data["name"],
-            dataChat.documents.first.data["messages"].last["m"].toString());
-      } else
+        _safeAndSendNotification();
+      } else {
         init = true;
+        if (prefs.getStringList("chatLastMessage") != null)
+          chatLastMessages.addAll(prefs.getStringList("chatLastMessage"));
+        if (!chatLastMessages.contains(
+            dataChat.documents.first.data["messages"].last.toString() +
+                dataChat.documents.first.data["lastMessage"].toString())) {
+          _safeAndSendNotification();
+        }
+      }
     }
   });
 }
