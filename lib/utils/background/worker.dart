@@ -66,6 +66,12 @@ Future<void> worker() async {
             });
           }
         });
+        if (prefs.getBool("notifyNewUser")) {
+          Server.instance.recomendUser().then((recomendedUser) {
+            showNotification("New user found!",
+                "Checkout " + recomendedUser["name"] + "'s video.");
+          });
+        }
       }
     });
   } catch (e) {

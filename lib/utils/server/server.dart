@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Userprofile
 /*
@@ -140,6 +141,13 @@ class Server {
               //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
               .getDocuments())
           .documents;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (ds.length == 0)
+      prefs.setBool("notifyNewUser", true);
+    else
+      prefs.setBool("notifyNewUser", false);
+      
     data = ds.first.data;
     data["uid"] = ds.first.documentID;
     return data;
@@ -246,7 +254,7 @@ class Server {
         "messages": [
           {firebaseUser.uid.substring(0, 6): true, "m": message}
         ],
-        "lastMessage" : DateTime.now()
+        "lastMessage": DateTime.now()
       });
     } else {
       List<dynamic> messagesList = documentSnapshots.first.data["messages"];
@@ -258,7 +266,7 @@ class Server {
         firebaseUser.uid: true,
         uidOtherUser: true,
         "messages": messagesList,
-        "lastMessage" : DateTime.now()
+        "lastMessage": DateTime.now()
       });
     }
   }
