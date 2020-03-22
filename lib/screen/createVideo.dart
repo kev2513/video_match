@@ -42,6 +42,7 @@ class _CreateVideoState extends State<CreateVideo> {
   bool _recordState = true;
   Timer _recodringTimer;
   bool _videoPlay = false;
+  bool _showRecordButton = true;
 
   VideoPlayerController _videoPlayerController;
 
@@ -68,30 +69,17 @@ class _CreateVideoState extends State<CreateVideo> {
     });
   }
 
-  _showHintDialog() {
-    showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: Text(
-                "Hint:",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Text(
-                  "• Be clearly visible in the video\n• Tell something about you in the first half of the video\n• Say what you are looking for in the second half\n\nOn average peole need 7 seconds to judge if they like someone so make your 15 seconds count. You can record as may times as you like. The last video you record will be uploaded."),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text("Close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            ));
-  }
-
   _startRecording() async {
     if (_recodringTimer == null && _recordState) {
       _videoPlay = false;
+      setState(() {
+        _showRecordButton = false;
+      });
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          _showRecordButton = true;
+        });
+      });
       await _cameraController
           .takePicture(await getSelfiePath(deleteOnExist: true));
       await _cameraController
@@ -261,7 +249,7 @@ class _CreateVideoState extends State<CreateVideo> {
                           )),
                     )
                   : Container(),
-              (!_videoPlay)
+              (!_videoPlay && _showRecordButton)
                   ? Align(
                       alignment: Alignment(0, .9),
                       child: FloatingActionButton(
