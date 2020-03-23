@@ -22,8 +22,6 @@ class _ChatState extends State<Chat> {
   ScrollController scrollController = ScrollController();
   Timer notificationCancleTimer;
 
-  get prefs => null;
-
   sendMessage() {
     Server.instance
         .sendChatMessage(widget.uidOtherUser, textEditingController.text);
@@ -82,7 +80,7 @@ class _ChatState extends State<Chat> {
                     dataList.forEach((block) {
                       var map = Map<String, dynamic>.from(block);
                       bool ownMessage = block[
-                          Server.instance.firebaseUser.uid.substring(0, 6)];
+                          Server.instance.firebaseUser.uid.substring(0, 6)] ?? false;
                       messages.add(MessageCard(
                         message: map["m"].toString(),
                         ownMessage: ownMessage,

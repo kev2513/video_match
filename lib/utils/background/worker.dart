@@ -66,10 +66,11 @@ Future<void> worker() async {
             });
           }
         });
-        if (prefs.getBool("notifyNewUser")) {
+        if (prefs.getBool("notifyNewUser") ?? false) {
           Server.instance.recomendUser().then((recomendedUser) {
-            showNotification("New user found!",
-                "Checkout " + recomendedUser["name"] + "'s video.");
+            if (recomendedUser != null)
+              showNotification("New user found!",
+                  "Checkout " + recomendedUser["name"] + "'s video.");
           });
         }
       }
@@ -81,8 +82,9 @@ Future<void> worker() async {
 
 chatMessageStream(DocumentSnapshot documentLikedUser) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool init = false;
   List<String> chatLastMessages = List<String>();
+  if (prefs.getStringList("chatLastMessage") != null)
+    chatLastMessages.addAll(prefs.getStringList("chatLastMessage"));
   Server.instance.chatStream(documentLikedUser.documentID).listen((dataChat) {
     _safeAndSendNotification() {
       chatLastMessages.add(
@@ -97,17 +99,10 @@ chatMessageStream(DocumentSnapshot documentLikedUser) async {
       if (!(dataChat.documents.first.data["messages"]
                   .last[Server.instance.firebaseUser.uid.substring(0, 6)] ??=
               false) &&
-          init) {
+          !chatLastMessages.contains(
+              dataChat.documents.first.data["messages"].last.toString() +
+                  dataChat.documents.first.data["lastMessage"].toString())) {
         _safeAndSendNotification();
-      } else {
-        init = true;
-        if (prefs.getStringList("chatLastMessage") != null)
-          chatLastMessages.addAll(prefs.getStringList("chatLastMessage"));
-        if (!chatLastMessages.contains(
-            dataChat.documents.first.data["messages"].last.toString() +
-                dataChat.documents.first.data["lastMessage"].toString())) {
-          _safeAndSendNotification();
-        }
       }
     }
   });

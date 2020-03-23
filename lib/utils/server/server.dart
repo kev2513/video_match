@@ -59,8 +59,9 @@ class Server {
 
       firebaseUser = (await _auth.signInWithCredential(credential)).user;
       await _updateOwnUserData();
-      await _updateLastOnline();
-    } catch (_) {
+      if (await checkIfProfileCreated()) await _updateLastOnline();
+    } catch (e) {
+      print(e.toString());
       return false;
     }
     return true;
@@ -132,10 +133,7 @@ class Server {
             .where("creationDate",
                 isGreaterThan: ownUserData["seenUserDateYoungest"])
             .orderBy("creationDate", descending: false)
-            //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
-            //.where("gender", isEqualTo: !ownUserData["gender"])
-            //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
-            //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
+            .where("gender", isEqualTo: !ownUserData["gender"])
             .getDocuments())
         .documents;
     if (ds.length == 0)
@@ -145,21 +143,19 @@ class Server {
               .where("creationDate",
                   isLessThan: ownUserData["seenUserDateOldest"])
               .orderBy("creationDate", descending: true)
-              //.where("lastOnline", isGreaterThanOrEqualTo: DateTime.now().subtract(Duration(days: 30)))
-              //.where("gender", isEqualTo: !ownUserData["gender"])
-              //.where("age", isGreaterThanOrEqualTo: ownUserData["minAge"])
-              //.where("age", isLessThanOrEqualTo: ownUserData["maxAge"])
+              .where("gender", isEqualTo: !ownUserData["gender"])
               .getDocuments())
           .documents;
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (ds.length == 0)
       prefs.setBool("notifyNewUser", true);
-    else
+    else {
       prefs.setBool("notifyNewUser", false);
 
-    data = ds.first.data;
-    data["uid"] = ds.first.documentID;
+      data = ds.first.data;
+      data["uid"] = ds.first.documentID;
+    }
     return data;
   }
 
@@ -248,9 +244,15 @@ class Server {
   }
 
   sendChatMessage(String uidOtherUser, String message) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     message = message.trim();
     if (message.isEmpty || message.length > 2000) return;
 
+    List<String> chatLastMessages = List<String>();
+    if (prefs.getStringList("chatLastMessage") != null)
+      chatLastMessages.addAll(prefs.getStringList("chatLastMessage"));
+    chatLastMessages.add({firebaseUser.uid.substring(0, 6): true, "m": message}.toString() + DateTime.now().toString());
+    prefs.setStringList("chatLastMessage", chatLastMessages);
     List<DocumentSnapshot> documentSnapshots = (await Firestore.instance
             .collection("chats")
             .where(firebaseUser.uid, isEqualTo: true)

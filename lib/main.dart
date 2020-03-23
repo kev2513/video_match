@@ -15,6 +15,7 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await AndroidAlarmManager.initialize();
   runApp(MyApp());
+  //worker();
   AndroidAlarmManager.periodic(
     Duration(minutes: 1),
     0,

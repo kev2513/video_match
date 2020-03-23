@@ -44,8 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ? VMButton(
                     text: "Sign in with Google",
                     onPressed: () async {
-                      if (await Server.instance.checkVersion()) {
-                        if (await Server.instance.handleSignIn()) {
+                      if (await Server.instance.handleSignIn()) {
+                        if (await Server.instance.checkVersion()) {
                           if (await Server.instance.checkIfProfileCreated() ==
                               false)
                             Navigator.of(context)
@@ -53,26 +53,26 @@ class _LoginScreenState extends State<LoginScreen> {
                           else
                             Navigator.of(context)
                                 .pushReplacementNamed("homeScreen");
+                        } else {
+                          showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                    title: Text(
+                                      "Sorry",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    content: Text("Please update Video Match."),
+                                    actions: <Widget>[
+                                      FlatButton(
+                                        child: Text("Close"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ],
+                                  ));
                         }
-                      } else {
-                        showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                                  title: Text(
-                                    "Sorry",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  content: Text("Please update Video Match."),
-                                  actions: <Widget>[
-                                    FlatButton(
-                                      child: Text("Close"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    )
-                                  ],
-                                ));
                       }
                     },
                   )

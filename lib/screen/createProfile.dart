@@ -19,7 +19,7 @@ class _CreateProfileState extends State<CreateProfile> {
   int currentPage = 0;
   bool nextPageLock = false;
 
-  String firstName = "", userAge = "", minAge = "", maxAge = "";
+  String firstName = "", userAge = "";
 
   TextEditingController fNTec = TextEditingController(),
       uATec = TextEditingController(),
@@ -41,8 +41,6 @@ class _CreateProfileState extends State<CreateProfile> {
       "administrativeArea": administrativeArea,
       "subAdministrativeArea": subAdministrativeArea,
       "city": city,
-      "minAge": minAge,
-      "maxAge": maxAge,
       "lastOnline": DateTime.now(),
       "seenUserDateOldest": DateTime.now(),
       "seenUserDateYoungest": DateTime.now(),
@@ -67,30 +65,7 @@ class _CreateProfileState extends State<CreateProfile> {
                     18)) ||
         currentPage == 2 ||
         currentPage == 3 && isoCountryCode != null ||
-        currentPage == 4 &&
-            (int.parse(minAge, onError: (_) {
-                      return 100;
-                    }) <=
-                    80 &&
-                (int.parse(minAge, onError: (_) {
-                      return 0;
-                    }) >=
-                    18)) &&
-            (int.parse(maxAge, onError: (_) {
-                      return 100;
-                    }) <=
-                    80 &&
-                (int.parse(maxAge, onError: (_) {
-                      return 0;
-                    }) >=
-                    18)) &&
-            int.parse(minAge, onError: (_) {
-                  return 0;
-                }) <=
-                int.parse(maxAge, onError: (_) {
-                  return 0;
-                }) ||
-        currentPage == 5 && videoCreated);
+        currentPage == 4 && videoCreated);
   }
 
   @override
@@ -240,57 +215,6 @@ class _CreateProfileState extends State<CreateProfile> {
                   ),
                 ],
               ),
-              InnerPageUserData(
-                children: <Widget>[
-                  Text(
-                    "Please enter the age range of the person you are looking for:",
-                    textAlign: TextAlign.center,
-                  ),
-                  Container(
-                    width: 100,
-                    height: 100,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Flexible(
-                          child: TextField(
-                            controller: mATec,
-                            keyboardType: TextInputType.number,
-                            maxLength: 2,
-                            textAlign: TextAlign.center,
-                            onChanged: (input) {
-                              setState(() {
-                                minAge = input;
-                              });
-                            },
-                          ),
-                        ),
-                        Text("-"),
-                        Flexible(
-                          child: TextField(
-                            controller: maxATec,
-                            keyboardType: TextInputType.number,
-                            maxLength: 2,
-                            textAlign: TextAlign.center,
-                            onChanged: (input) {
-                              setState(() {
-                                maxAge = input;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Divider(
-                    color: Colors.transparent,
-                  ),
-                  Text(
-                    "This can not be changed afterwards.",
-                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.red),
-                  )
-                ],
-              ),
               CreateVideo(
                 onVideoCreated: () {
                   setState(() {
@@ -305,7 +229,7 @@ class _CreateProfileState extends State<CreateProfile> {
               )
             ],
           ),
-          (currentPage >= 1 && currentPage < 5)
+          (currentPage >= 1 && currentPage < 4)
               ? Align(
                   alignment: Alignment(-.9, .95),
                   child: FloatingActionButton(
@@ -333,12 +257,12 @@ class _CreateProfileState extends State<CreateProfile> {
           ? FloatingActionButton(
               heroTag: null,
               child: Icon(
-                (currentPage == 5) ? Icons.file_upload : Icons.navigate_next,
+                (currentPage == 4) ? Icons.file_upload : Icons.navigate_next,
                 color: mainColor,
               ),
               backgroundColor: Colors.white,
               onPressed: () async {
-                if (currentPage == 5) {
+                if (currentPage == 4) {
                   _createProfile();
                 } else if (!nextPageLock) {
                   nextPageLock = true;
