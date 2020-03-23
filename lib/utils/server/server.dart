@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_match/utils/updateCheck.dart';
 
 // Userprofile
 /*
@@ -38,7 +39,7 @@ class Server {
   Future<bool> signIn() async {
     return (await _googleSignIn.isSignedIn()) &&
         (await handleSignIn()) &&
-        (await checkIfProfileCreated());
+        (await checkIfProfileCreated() && (await checkVersion()));
   }
 
   Future<bool> handleSignIn() async {
@@ -63,6 +64,15 @@ class Server {
       return false;
     }
     return true;
+  }
+
+  /// Only if signed in
+  Future<bool> checkVersion() async {
+    DocumentSnapshot ds = await Firestore.instance
+        .collection("version")
+        .document("version")
+        .get();
+    return (checkUpdateVersionNumber >= ds.data["minVersion"]);
   }
 
   _updateOwnUserData() async {
@@ -147,7 +157,7 @@ class Server {
       prefs.setBool("notifyNewUser", true);
     else
       prefs.setBool("notifyNewUser", false);
-      
+
     data = ds.first.data;
     data["uid"] = ds.first.documentID;
     return data;

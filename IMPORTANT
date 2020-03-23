@@ -13,3 +13,10 @@ force update!
 datenschutz
 app images
 app text
+
+UPLOAD!
+
+UPDATE STEPS:
+ 1 Increase the App version and build number in pubspec.ymal
+  (version number is 1.X.X and build +X)
+ 2 Increase the checkUpdateVersionNumber in updateCheck.dart
