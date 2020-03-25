@@ -24,6 +24,26 @@ class _ChatsListState extends State<ChatsList> {
           if (snapshot.hasError) return Text('Error: ${snapshot.error}');
           if (snapshot.connectionState == ConnectionState.waiting)
             return VMLoadingCircle();
+          if (snapshot.data.documents.length == 0)
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset(
+                  "assets/owl.png",
+                  height: 150,
+                  width: 150,
+                ),
+                Divider(color: Colors.transparent),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    "You will soon find someone",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              ],
+            );
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
