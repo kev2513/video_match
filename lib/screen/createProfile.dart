@@ -81,7 +81,7 @@ class _CreateProfileState extends State<CreateProfile> {
               InnerPageUserData(
                 children: <Widget>[
                   Text(
-                    "Please enter your first name:",
+                    "Please enter your first name or nickname:",
                   ),
                   Container(
                     width: 200,
@@ -170,7 +170,7 @@ class _CreateProfileState extends State<CreateProfile> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
-                          "Please allow access to your GPS",
+                          "Please allow access to your GPS\n(we only need it once)",
                           style: TextStyle(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
@@ -187,7 +187,8 @@ class _CreateProfileState extends State<CreateProfile> {
                               .getCurrentPosition(
                                   desiredAccuracy: LocationAccuracy.high);
                           Placemark placemark = (await Geolocator()
-                                  .placemarkFromPosition(position))
+                                  .placemarkFromPosition(position,
+                                      localeIdentifier: "en_US"))
                               .first;
                           setState(() {
                             isoCountryCode = placemark.isoCountryCode;

@@ -15,7 +15,6 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await AndroidAlarmManager.initialize();
   runApp(MyApp());
-  //worker();
   AndroidAlarmManager.periodic(
     Duration(minutes: 1),
     0,
@@ -35,6 +34,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Video Match',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
           accentColor: secondaryColor,
           primaryColor: mainColor,

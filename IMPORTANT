@@ -6,15 +6,12 @@ Also removed 'orientationEventListener.enable();' in line 102.
 App key:
 x3jwWef2@
 
-TODO:
-
-datenschutz
-app images
-app text
-
 UPLOAD!
 
 UPDATE STEPS:
  1 Increase the App version and build number in pubspec.ymal
-  (version number is 1.X.X and build +X)
+  (version number is X.X.X and build +X)
  2 Increase the checkUpdateVersionNumber in updateCheck.dart
+ 3 Update the privacy policy and terms of service
+ 4 Test on S9+ with release mode: flutter run -d 23d0f1b0ea0c7ece --release
+ 5 run: flutter build appbundle
